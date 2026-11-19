@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-question">
+  <h1 class="page-title">Here's what we understood</h1>
+  <p class="page-sub">Review your answers before we build your coverage map. You can edit any answer.</p>
+
+  <section class="card review-card" aria-label="Your answers">
+    <ol class="review-list">
+      {% for row in rows %}
+      <li class="review-row">
+        <div>
+          <p class="review-caption">{{ '%02d' % row.question.number }} {{ row.question.review_label }}</p>
+          {% if row.value %}
+            <p class="review-value">{{ row.value }}</p>
+          {% else %}
+            <p class="review-value is-empty">Not answered</p>
+          {% endif %}
+        </div>
+        <a class="btn btn-small btn-secondary" href="{{ url_for('onboarding.question', number=row.question.number, **{'from': 'review'}) }}"
+           aria-label="Edit {{ row.question.review_label | lower }}">Edit</a>
+      </li>
+      {% endfor %}
+    </ol>
+  </section>
+
+  <form method="post" class="actions">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <a class="btn btn-secondary" href="{{ back_url }}">Back</a>
+    <div class="actions-right">
+      <button type="submit" class="btn btn-primary">Build my coverage map</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

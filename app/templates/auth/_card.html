@@ -1,0 +1,10 @@
+{# Shared account card used by sign-up and login (same visual style). #}
+{% macro field(name, label, type, value, error, placeholder, autocomplete, maxlength=254) %}
+  <div class="field">
+    <label for="{{ name }}">{{ label }}</label>
+    <input id="{{ name }}" name="{{ name }}" type="{{ type }}" value="{{ value }}"
+           placeholder="{{ placeholder }}" autocomplete="{{ autocomplete }}" maxlength="{{ maxlength }}"
+           required{% if error %} aria-invalid="true" aria-describedby="{{ name }}-error"{% endif %}>
+    {% if error %}<p class="field-error" id="{{ name }}-error">{{ error }}</p>{% endif %}
+  </div>
+{% endmacro %}

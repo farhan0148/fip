@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-question">
+  <h1 class="page-title">Let's get to know you</h1>
+
+  <div class="progress-meta">
+    <span>Question {{ q.number }} of {{ total }}</span>
+    <span>{{ minutes_left }}</span>
+  </div>
+  <div class="progress" role="progressbar" aria-valuemin="1" aria-valuemax="{{ total }}" aria-valuenow="{{ q.number }}" aria-label="Questionnaire progress">
+    <div class="progress-bar step-{{ q.number }}"></div>
+  </div>
+
+  <form method="post" action="{{ form_action }}" id="question-form" data-other-key="{{ other_key }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    {# First submit button in the DOM is what Enter triggers. Keep it "next". #}
+    <button type="submit" name="action" value="{{ 'save' if from_review else 'next' }}" class="sr-only" tabindex="-1" aria-hidden="true">Continue</button>
+
+    <section class="card question-card">
+      <div class="question-head">
+        <span class="ai-chip" aria-hidden="true">AI</span>
+        <h2 id="q-title">{{ q.title }}</h2>
+      </div>
+      <p class="why" id="q-why"><span>Why we ask:</span> {{ q.why }}</p>
+      <p class="hint">Choose the answer that fits you best.</p>
+
+      {% if error %}<p class="form-error" role="alert" id="q-error">{{ error }}</p>{% endif %}
+
+      <div class="options" role="radiogroup" aria-labelledby="q-title" aria-describedby="q-why">
+        {% for option in q.options %}
+        <label class="option">
+          <input type="radio" name="answer" value="{{ option.key }}"{% if selected_key == option.key %} checked{% endif %}>
+          <span class="option-box" aria-hidden="true"></span>
+          <span class="option-label">{{ option.label }}</span>
+        </label>
+        {% endfor %}
+      </div>
+
+      <div class="other-wrap">
+        <label class="option option-other">
+          <input type="radio" name="answer" value="{{ other_key }}"{% if selected_key == other_key %} checked{% endif %}>
+          <span class="option-box" aria-hidden="true"></span>
+          <span class="option-label">{{ other_label }}</span>
+        </label>
+        <div class="other-field">
+          <label for="other_text">Type your answer</label>
+          <input type="text" id="other_text" name="other_text" maxlength="{{ other_max }}" value="{{ other_text }}" autocomplete="off">
+        </div>
+      </div>
+    </section>
+
+    <div class="actions">
+      {% if from_review %}
+        <a class="btn btn-secondary" href="{{ review_url }}">Cancel</a>
+        <div class="actions-right">
+          <button type="submit" name="action" value="save" class="btn btn-primary" id="next-btn">Save</button>
+        </div>
+      {% else %}
+        {% if back_url %}
+          <button type="submit" name="action" value="back" class="btn btn-secondary" formnovalidate>Back</button>
+        {% else %}
+          <button type="button" class="btn btn-secondary" disabled>Back</button>
+        {% endif %}
+        <div class="actions-right">
+          <button type="submit" name="action" value="skip" class="btn btn-secondary" formnovalidate>Skip</button>
+          <button type="submit" name="action" value="next" class="btn btn-primary" id="next-btn">{{ 'Review answers' if is_last else 'Next' }} →</button>
+        </div>
+      {% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/question.js') }}" defer></script>
+{% endblock %}

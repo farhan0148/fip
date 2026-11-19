@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% macro soon_button(label, kind="secondary") %}
+  <button type="button" class="btn btn-{{ kind }} is-unavailable" disabled aria-disabled="true">{{ label }} <span class="pill">Soon</span></button>
+{% endmacro %}
+{% block content %}
+<div class="container-wide">
+
+  <div class="dash-head">
+    <div>
+      <h1 class="page-title">{% if first_visit %}Welcome{% else %}Welcome back{% endif %}, {{ current_user.first_name }} 👋</h1>
+      <p class="page-sub">Here's your protection overview. Everything here is an estimate to be confirmed with your Financial Consultant (FC).</p>
+    </div>
+    <div class="dash-actions">
+      {{ soon_button("Simulate a change") }}
+      {{ soon_button("Ask AI") }}
+      {{ soon_button("Find a plan", "primary") }}
+    </div>
+  </div>
+  <p class="note">Buttons marked “Soon” are not available in this build.</p>
+
+  <section class="demo-section" aria-labelledby="demo-title">
+    <div class="demo-head">
+      <span class="chip chip-warning" id="demo-title">{{ demo.title }}</span>
+      <p class="small muted">{{ demo.note }} Your real coverage calculation is not built yet.</p>
+    </div>
+    <div class="dash-grid">
+      <section class="card score-card" aria-labelledby="score-title">
+        <p class="eyebrow" id="score-title">Coverage score (demo)</p>
+        <svg class="score-svg" viewBox="0 0 120 120" role="img" aria-label="Demo coverage score {{ demo.score }} out of 100">
+          <circle cx="60" cy="60" r="50" class="ring-track" pathLength="100"/>
+          <circle cx="60" cy="60" r="50" class="ring-value" pathLength="100" stroke-dasharray="{{ demo.score }} 100" transform="rotate(-90 60 60)"/>
+          <text x="60" y="64" text-anchor="middle" class="ring-number">{{ demo.score }}</text>
+          <text x="60" y="82" text-anchor="middle" class="ring-max">/ 100</text>
+        </svg>
+        <span class="chip chip-warning">{{ demo.score_label }}</span>
+        <p class="muted small">Sample value, not based on your answers.</p>
+      </section>
+
+      <section class="card breakdown-card" aria-labelledby="breakdown-title">
+        <h2 class="card-title" id="breakdown-title">Coverage breakdown (demo)</h2>
+        <p class="muted small">Sample view of six protection areas.</p>
+        <div class="breakdown">
+          <figure class="radar">
+            <svg viewBox="0 0 360 250" role="img" aria-label="Demo coverage radar. {% for a in demo.axes %}{{ a.name }} {{ a.value }}{% if not loop.last %}, {% endif %}{% endfor %}.">
+              {% for ring in demo.rings %}<polygon points="{{ ring }}" class="radar-ring"/>{% endfor %}
+              {% for x, y in demo.spokes %}<line x1="{{ demo.centre[0] }}" y1="{{ demo.centre[1] }}" x2="{{ x }}" y2="{{ y }}" class="radar-spoke"/>{% endfor %}
+              <polygon points="{{ demo.shape }}" class="radar-shape"/>
+              {% for a in demo.axes %}<text x="{{ a.label_x }}" y="{{ a.label_y }}" text-anchor="{{ a.anchor }}" class="radar-label">{{ a.name }}</text>{% endfor %}
+            </svg>
+          </figure>
+          <ul class="bars">
+            {% for a in demo.axes %}
+            <li class="bar-row">
+              <span class="bar-label">{{ a.name }}</span>
+              <svg class="bar-svg" width="100%" height="6" aria-hidden="true">
+                <rect width="100%" height="6" rx="3" class="bar-bg"/>
+                <rect width="{{ a.value }}%" height="6" rx="3" class="bar-fill bar-{{ a.band }}"/>
+              </svg>
+              <span class="bar-value">{{ a.value }}%</span>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </section>
+    </div>
+  </section>
+  <section class="card priorities-card" aria-labelledby="priorities-title">
+    <h2 class="card-title" id="priorities-title">Review priorities</h2>
+    <p class="muted small">Topics worth talking through with your FC, ranked from your answers. This is not a score or a recommendation to buy.</p>
+    {% if priorities %}
+    <ol class="priority-list">
+      {% for p in priorities %}
+      <li class="priority">
+        <div class="priority-num" aria-hidden="true">{{ loop.index }}</div>
+        <div>
+          <h3>{{ p.title }}</h3>
+          <ul class="triggers">
+            {% for caption, answer, reason in p.triggers %}
+            <li><span class="trigger-answer">{{ caption }}: {{ answer }}.</span> {{ reason }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </li>
+      {% endfor %}
+    </ol>
+    {% else %}
+    <p class="empty">Your answers don't point to a specific topic yet, so none are suggested. Skipped answers and typed-in “Other” answers are not used for this.</p>
+    {% endif %}
+  </section>
+
+  <section class="card summary-card" aria-labelledby="summary-title">
+    <div>
+      <h2 class="card-title" id="summary-title">Your summary</h2>
+      {% if summary %}
+      <p class="summary-text">{% for label, value in summary %}<span class="summary-item"><span class="muted">{{ label }}:</span> {{ value }}</span>{% if not loop.last %} · {% endif %}{% endfor %}</p>
+      {% else %}
+      <p class="summary-text muted">You skipped every question, so there is nothing to summarise yet.</p>
+      {% endif %}
+      <p class="muted small">Nothing is shared with your FC unless you choose to share it. Sharing is not available in this build.</p>
+    </div>
+    {{ soon_button("Send to my FC", "primary") }}
+  </section>
+
+  <section aria-labelledby="plans-title">
+    <div class="section-head">
+      <div>
+        <h2 class="section-title" id="plans-title">Sample plans</h2>
+        <p class="muted small">Fictional demo data. These are not real products or prices, and they are not matched to you.</p>
+      </div>
+      <span class="muted small is-unavailable">View all plans <span class="pill">Soon</span></span>
+    </div>
+    {% if plans %}
+    <div class="plan-grid">
+      {% for plan in plans %}
+      <article class="card plan-card">
+        <div class="chips">
+          <span class="chip chip-info">{{ plan.type }}</span>
+          <span class="chip chip-muted">Demo data</span>
+        </div>
+        <h3>{{ plan.name }}</h3>
+        <p class="muted small">{{ plan.description }}</p>
+        <p class="price">{{ plan.monthly_premium_cents | money }}<span class="muted small"> /mo</span></p>
+        <div class="plan-actions">
+          {{ soon_button("View plan", "primary") }}
+          {% if plans|length > 1 %}<a class="btn btn-secondary" href="{{ url_for('compare.index', a=plan.id, b=(plans[1].id if plan.id == plans[0].id else plans[0].id)) }}" aria-label="Compare {{ plan.name }} with another plan">Compare</a>{% else %}{{ soon_button("Compare") }}{% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty">No sample plans are loaded. Load the demo data with <code>flask seed-demo</code>.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "title": "Illustrative demo values",
+  "note": "Hand-written sample numbers, fixed in this file. They are the same for every user, do not depend on any answers, and are not a real coverage assessment.",
+  "score": 62,
+  "score_label": "Moderate coverage",
+  "areas": {
+    "Life cover": 72,
+    "Hospitalisation": 65,
+    "Critical illness": 58,
+    "Disability": 35,
+    "Retirement": 48,
+    "Liability": 20
+  }
+}

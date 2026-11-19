@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-wide citation-page">
+  <a class="back-link" href="{{ back_url }}">← Back to comparison</a>
+  <h1 class="page-title">Source: {{ clause.policy.document_ref or (clause.policy.name ~ " sample policy contract") }}</h1>
+  <p class="page-sub">Opened from a comparison citation · page {{ view_page }}. Sample excerpt with fictional wording.</p>
+
+  <div class="citation-grid">
+    <section class="card source-page" aria-label="Source page {{ view_page }}">
+      <ol class="source-lines">
+        {% for row in lines %}
+        <li class="source-line{% if row.id == clause.id %} is-cited{% endif %}"{% if row.id == clause.id %} id="cited-line" aria-current="true"{% endif %}>
+          <span class="line-no" aria-label="Line {{ row.line }}">{{ row.line }}</span>
+          <span class="line-text"><strong>{{ row.clause }}</strong> {{ row.text }}</span>
+        </li>
+        {% endfor %}
+      </ol>
+      <div class="pager">
+        {% if prev_url %}<a class="btn btn-small btn-secondary" href="{{ prev_url }}">‹ Prev</a>{% else %}<span class="btn btn-small btn-secondary is-unavailable" aria-disabled="true">‹ Prev</span>{% endif %}
+        {% if next_url %}<a class="btn btn-small btn-secondary" href="{{ next_url }}">Next ›</a>{% else %}<span class="btn btn-small btn-secondary is-unavailable" aria-disabled="true">Next ›</span>{% endif %}
+        <span class="small muted">Page {{ view_page }} · {{ pages|length }} sample pages</span>
+        {% if view_page != clause.page %}<a class="small" href="{{ cited_url }}">Back to cited line (page {{ clause.page }})</a>{% endif %}
+      </div>
+    </section>
+
+    <aside class="side">
+      <section class="card">
+        {% if cell %}
+          <span class="chip chip-warning">Cited by comparison</span>
+          <p class="claim">“{{ cell.finding }}”</p>
+          <span class="state state-{{ cell.state }}">{{ state_label }}</span>
+        {% else %}
+          <span class="chip chip-muted">Source clause</span>
+        {% endif %}
+        <p class="matches">Matches: clause {{ clause.clause }}, line {{ clause.line }}</p>
+        <p class="small muted">Page {{ clause.page }} of the sample document.</p>
+      </section>
+      <section class="card">
+        <h2 class="card-title">Something unclear?</h2>
+        <p class="small muted">Send this clause and your question to your FC.</p>
+        <button type="button" class="btn btn-primary is-unavailable" disabled aria-disabled="true">Send to my FC <span class="pill">Soon</span></button>
+      </section>
+    </aside>
+  </div>
+</div>
+{% endblock %}

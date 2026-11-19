@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if page_title %}{{ page_title }} · {% endif %}Insurance Navigator</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <a class="skip-link" href="#main">Skip to content</a>
+  {% block nav %}
+  {% if current_user %}
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('auth.index') }}">Insurance Navigator</a>
+    <nav class="topnav" aria-label="Main">
+      {% for label, endpoint in nav_items %}
+        {% if current_user.review_confirmed_at or label == 'Settings' %}
+          <a href="{{ url_for(endpoint) }}"{% if request.endpoint == endpoint %} class="is-active" aria-current="page"{% endif %}>{{ label }}</a>
+        {% else %}
+          <span class="is-disabled" aria-disabled="true" title="Available after you confirm your answers">{{ label }}</span>
+        {% endif %}
+      {% endfor %}
+      <form method="post" action="{{ url_for('auth.logout') }}" class="logout-form">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button type="submit" class="linklike">Log out</button>
+      </form>
+    </nav>
+  </header>
+  {% endif %}
+  {% endblock %}
+  <main id="main">
+    {% block content %}{% endblock %}
+  </main>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

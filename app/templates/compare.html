@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% macro cell_view(c, a, b) %}
+  <td class="cmp-cell" id="cell-{{ c.policy.id }}-{{ c.row_key }}">
+    <span class="state state-{{ c.state }}">{{ c.state_label }}</span>
+    <p class="finding">{{ c.finding }}</p>
+    {% if c.clause %}
+      <a class="clause-link" href="{{ url_for('compare.citation', clause_id=c.clause.id, cell=c.cell.id, a=a.id, b=b.id) }}">Policy contract · p.{{ c.clause.page }}, cl.{{ c.clause.clause }}, line {{ c.clause.line }}</a>
+      <blockquote class="original">“{{ c.clause.text }}”</blockquote>
+    {% else %}
+      <span class="no-source">No source clause found</span>
+    {% endif %}
+    {% if c.can_flag %}
+      <form method="post" action="{{ url_for('compare.flag') }}" class="flag-form">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="policy_id" value="{{ c.policy.id }}">
+        <input type="hidden" name="row_key" value="{{ c.row_key }}">
+        <input type="hidden" name="a" value="{{ a.id }}">
+        <input type="hidden" name="b" value="{{ b.id }}">
+        {% if c.flagged %}
+          <span class="flagged-note">Flagged for your FC to verify</span>
+          <button type="submit" class="btn btn-small btn-secondary">Remove flag</button>
+        {% else %}
+          <button type="submit" class="btn btn-small btn-secondary">Flag for my FC to verify</button>
+        {% endif %}
+      </form>
+    {% endif %}
+  </td>
+{% endmacro %}
+
+{% block content %}
+<div class="container-wide compare-page">
+  <h1 class="page-title">Compare policies</h1>
+  <p class="page-sub">Plain-language findings, each linked to the exact policy wording. All plans here are fictional demo data.</p>
+
+  {% if not ready %}
+    <p class="empty">Two sample plans are needed to compare. Load the demo data with <code>flask seed-demo</code>.</p>
+  {% else %}
+
+  <form method="get" action="{{ url_for('compare.index') }}" class="picker" id="picker-form">
+    <div class="picker-field">
+      <label for="plan-a">First plan</label>
+      <select id="plan-a" name="a">
+        {% for p in policies %}<option value="{{ p.id }}"{% if p.id == a.id %} selected{% endif %}>{{ p.name }} ({{ p.type }})</option>{% endfor %}
+      </select>
+    </div>
+    <div class="picker-field">
+      <label for="plan-b">Second plan</label>
+      <select id="plan-b" name="b">
+        {% for p in policies %}<option value="{{ p.id }}"{% if p.id == b.id %} selected{% endif %}>{{ p.name }} ({{ p.type }})</option>{% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Update comparison</button>
+  </form>
+  {% if notice %}<p class="form-error" role="alert">{{ notice }}</p>{% endif %}
+
+  <div class="compare-wrap">
+    <div class="compare-toolbar">
+      <div class="legend" aria-label="Cell states">
+        <span class="small muted">Cell states:</span>
+        {% for key, label in states %}<span class="state state-{{ key }}">{{ label }}</span>{% endfor %}
+        <span class="small muted">“Not included” appears only when the wording says so.</span>
+      </div>
+      <label class="toggle"><input type="checkbox" id="show-original"> Show original wording</label>
+    </div>
+
+    <div class="table-scroll">
+    <table class="cmp-table">
+      <caption class="sr-only">Comparison of {{ a.name }} and {{ b.name }}</caption>
+      <thead>
+        <tr>
+          <th scope="col">Policy</th>
+          {% for p in (a, b) %}
+          <th scope="col">{{ p.name }}<span class="th-sub">{{ p.type }} · {{ p.monthly_premium_cents | money }}/mo</span></th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% if shared %}
+        <tr class="band"><th colspan="3" scope="colgroup">Shared rows · comparable across both plans</th></tr>
+        {% for row in shared %}
+        <tr>
+          <th scope="row">{{ row.label }}</th>
+          {% for c in row.cells %}{{ cell_view(c, a, b) }}{% endfor %}
+        </tr>
+        {% endfor %}
+        {% endif %}
+        {% if distinctive %}
+        <tr class="band band-warn"><th colspan="3" scope="colgroup">Distinctive benefits · only one plan mentions these</th></tr>
+        {% for row in distinctive %}
+        <tr>
+          <th scope="row">{{ row.label }}<span class="auto-tag">Auto-detected</span></th>
+          {% for c in row.cells %}{{ cell_view(c, a, b) }}{% endfor %}
+        </tr>
+        {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
+    </div>
+
+    <div class="compare-foot">
+      <p class="small muted">Clause links open the source page at the exact line. Findings are plain-language estimates to be confirmed with your FC.</p>
+      <button type="button" class="btn btn-secondary is-unavailable" disabled aria-disabled="true">Send flagged items to my FC ({{ flag_count }}) <span class="pill">Soon</span></button>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/compare.js') }}" defer></script>
+{% endblock %}

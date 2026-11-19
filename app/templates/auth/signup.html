@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% from "auth/_card.html" import field %}
+{% block body_class %}page-auth{% endblock %}
+{% block content %}
+<section class="auth-card" aria-labelledby="auth-title">
+  <p class="auth-brand">Insurance Navigator</p>
+  <h1 id="auth-title">Create your account</h1>
+  <p class="auth-sub">A clearer starting point for every advice conversation.</p>
+  <form method="post" novalidate>
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    {{ field("full_name", "Full name", "text", values.full_name, errors.get("full_name"), "Enter full name", "name", 100) }}
+    {{ field("email", "Email", "email", values.email, errors.get("email"), "Enter email", "email") }}
+    {{ field("password", "Password", "password", "", errors.get("password"), "At least 8 characters", "new-password", 128) }}
+    <button type="submit" class="btn btn-primary btn-block">Sign up</button>
+  </form>
+  <p class="auth-alt"><a href="{{ url_for('auth.login') }}">Already have an account? Log in</a></p>
+</section>
+{% endblock %}
