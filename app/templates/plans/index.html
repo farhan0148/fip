@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-wide">
+  <h1 class="page-title">All plans</h1>
+  <p class="page-sub">Fictional sample plans with invented wording and prices. Nothing here is advice to buy.</p>
+
+  <nav class="filters" aria-label="Filter plans by type">
+    {% for slug, label, _type in filters %}
+      <a class="filter-chip{% if slug == selected %} is-active{% endif %}" href="{{ url_for('plans.index', type=slug) if slug != 'all' else url_for('plans.index') }}"{% if slug == selected %} aria-current="true"{% endif %}>{{ label }}</a>
+    {% endfor %}
+  </nav>
+
+  {% if cards %}
+  <div class="plan-grid plan-grid-wide">
+    {% for card in cards %}
+    {% set plan = card.policy %}
+    <article class="card plan-card">
+      <div class="chips">
+        <span class="chip chip-info">{{ plan.type }}</span>
+        <span class="chip chip-muted">Demo data</span>
+      </div>
+      <h2 class="plan-name">{{ plan.name }}</h2>
+      <p class="muted small">{{ plan.description }}</p>
+      <p class="price">{{ plan.monthly_premium_cents | money }}<span class="muted small"> /mo</span></p>
+      <div class="plan-actions">
+        <a class="btn btn-primary" href="{{ url_for('plans.detail', plan_id=plan.id) }}">View plan</a>
+        <a class="btn btn-secondary" href="{{ card.compare_url }}" aria-label="Compare {{ plan.name }} with another plan">Compare</a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% elif total == 0 %}
+  <p class="empty">No plans are loaded. Load the sample plans with <code>flask seed-demo</code>.</p>
+  {% else %}
+  <p class="empty">There are no {{ selected_label }} plans in the sample catalogue yet. <a href="{{ url_for('plans.index') }}">Show all plans</a>.</p>
+  {% endif %}
+</div>
+{% endblock %}

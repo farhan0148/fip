@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-question">
+  <h1 class="page-title">Sharing with my FC</h1>
+  <p class="trust-banner" role="note">Your FC only sees what you choose to share. You can stop sharing any time.</p>
+
+  {% if just_shared %}<p class="notice" role="status">Done. Your FC can now see only the items listed below.</p>{% endif %}
+  {% if just_revoked %}<p class="notice" role="status">Stopped. Your FC can no longer see that item.</p>{% endif %}
+
+  {% if fc %}
+  <section class="card fc-card" aria-label="Your FC">
+    <div>
+      <p class="eyebrow">Your FC</p>
+      <h2 class="card-title">{{ fc.name }}</h2>
+      <p class="small muted">{{ fc.speciality }}{% if fc.languages %} · {{ fc.languages | join(", ") }}{% endif %}</p>
+    </div>
+    <a class="btn btn-secondary" href="{{ url_for('sharing.new') }}">Share more</a>
+  </section>
+  {% endif %}
+
+  <section class="card" aria-labelledby="active-title">
+    <h2 class="card-title" id="active-title">What you are sharing now</h2>
+    {% if grants %}
+    <ul class="grant-list">
+      {% for grant, item in grants %}
+      <li class="grant-row">
+        <div>
+          <strong>{{ item.title }}</strong>
+          <p class="small muted">Shared since {{ grant.granted_at.strftime("%d %b %Y, %H:%M") }}</p>
+        </div>
+        <form method="post" action="{{ url_for('sharing.revoke') }}">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <input type="hidden" name="category" value="{{ grant.category }}">
+          <button type="submit" class="btn btn-small btn-secondary" aria-label="Revoke sharing of {{ item.short }}">Revoke</button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="empty">You are not sharing anything. Your FC sees nothing.</p>
+    <a class="btn btn-primary" href="{{ url_for('sharing.new') }}">Send to my FC</a>
+    {% endif %}
+  </section>
+
+  {% if events %}
+  <section class="card" aria-labelledby="log-title">
+    <h2 class="card-title" id="log-title">Activity</h2>
+    <table class="log-table">
+      <thead><tr><th scope="col">When</th><th scope="col">What happened</th><th scope="col">Item</th></tr></thead>
+      <tbody>
+        {% for at, action, category, fc_name in events %}
+        <tr>
+          <td>{{ at.strftime("%d %b %Y, %H:%M") }}</td>
+          <td>{% if action == "granted" %}You shared with {{ fc_name }}{% elif action == "revoked" %}You stopped sharing with {{ fc_name }}{% else %}{{ fc_name }} viewed{% endif %}</td>
+          <td>{{ info[category].short }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

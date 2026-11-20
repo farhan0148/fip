@@ -2,9 +2,9 @@ from datetime import datetime, timezone
 
 from flask import Blueprint, g, render_template
 
-from . import demo_fixture, services
+from . import demo_fixture, plan_match, services
+from .catalogue import catalogue_policies
 from .extensions import db
-from .models import Policy
 from .security import login_required, onboarding_complete_required
 
 bp = Blueprint("dashboard", __name__)
@@ -17,14 +17,14 @@ def index():
         g.user.dashboard_first_seen_at = datetime.now(timezone.utc)
         db.session.commit()
 
-    plans = Policy.query.filter_by(is_demo=True).order_by(Policy.id).limit(3).all()
+    top = plan_match.top_plans(g.user, catalogue_policies())
     return render_template(
         "dashboard.html",
         first_visit=first_visit,
         summary=services.profile_summary(g.user),
         priorities=services.priorities_for(g.user),
         demo=demo_fixture.load(),
-        plans=plans,
+        top=top,
         page_title="Dashboard",
     )
 
@@ -37,5 +37,4 @@ def _placeholder(title, needs_review):
     return onboarding_complete_required(view) if needs_review else login_required(view)
 
 
-bp.add_url_rule("/plans", "plans", _placeholder("Plans", True))
 bp.add_url_rule("/settings", "settings", _placeholder("Settings", False))

@@ -1,14 +1,20 @@
-"""Flask CLI commands. `flask seed-demo` loads fictional demo data only."""
+"""Flask CLI commands. `flask seed-demo` loads fictional demo data only; `flask create-fc` makes a real FC."""
+
+import re
+import secrets
 
 import click
+from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash
 
-from .demo_data import CELLS, CLAUSES, DEMO_POLICIES
+from .demo_data import CELLS, CLAUSES, DEMO_FCS, DEMO_POLICIES
 from .extensions import db
-from .models import ComparisonCell, ComparisonFlag, Policy, PolicyClause, User
+from .models import ComparisonCell, ComparisonFlag, FCProfile, Policy, PolicyClause, User
 
 DEMO_EMAIL = "demo@example.com"
 DEMO_PASSWORD = "demo-password-1"
+DEMO_FC_PASSWORD = "demo-fc-password-1"
+_EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 def _seed_policy_documents(policy):
@@ -34,11 +40,19 @@ def _seed_policy_documents(policy):
     return len(by_location) + len(CELLS.get(policy.name, ()))
 
 
+def _unique_referral_code():
+    for _ in range(50):
+        code = f"FC-{secrets.randbelow(9000) + 1000}"
+        if not FCProfile.query.filter_by(referral_code=code).first():
+            return code
+    raise click.ClickException("Could not find a free referral code. Try again.")
+
+
 def register_commands(app):
     @app.cli.command("seed-demo")
     @click.option("--reset", is_flag=True, help="Delete existing demo plans first (accounts are kept).")
     def seed_demo(reset):
-        """Load fictional demo plans, sample clauses and one demo account (no answers)."""
+        """Load fictional demo plans, sample clauses, one demo client and two demo FCs."""
         if reset:
             demo_ids = [p.id for p in Policy.query.filter_by(is_demo=True)]
             if demo_ids:
@@ -73,6 +87,54 @@ def register_commands(app):
                 )
             )
             added += 1
+
+        for fc in DEMO_FCS:
+            user = User.query.filter_by(email=fc["email"]).first()
+            if user is None:
+                user = User(
+                    full_name=fc["name"], email=fc["email"], role="fc", is_demo=True,
+                    password_hash=generate_password_hash(DEMO_FC_PASSWORD),
+                )
+                db.session.add(user)
+                db.session.flush()
+                added += 1
+            if not FCProfile.query.filter_by(user_id=user.id).first():
+                db.session.add(FCProfile(user_id=user.id, referral_code=fc["referral_code"],
+                                         speciality=fc["speciality"], languages=fc["languages"]))
+                added += 1
         db.session.commit()
         click.echo(f"Seeded {added} fictional demo row(s).")
-        click.echo(f"Demo login: {DEMO_EMAIL} / {DEMO_PASSWORD}")
+        click.echo(f"Demo client login: {DEMO_EMAIL} / {DEMO_PASSWORD}")
+        for fc in DEMO_FCS:
+            click.echo(f"Demo FC login: {fc['email']} / {DEMO_FC_PASSWORD}  (referral code {fc['referral_code']})")
+
+    @app.cli.command("create-fc")
+    @click.option("--email", required=True, help="Login email for the new FC.")
+    @click.option("--name", required=True, help="Full name shown to clients.")
+    @click.option("--speciality", default="General protection", show_default=True)
+    @click.option("--language", "languages", multiple=True, help="Repeat for each language, e.g. --language English.")
+    @click.password_option(prompt="Password (hidden)", confirmation_prompt="Repeat password", help="Prompted, never echoed.")
+    def create_fc(email, name, speciality, languages, password):
+        """Create a Financial Consultant account. Public sign-up can only create clients."""
+        email = email.strip().lower()
+        name = " ".join(name.split())
+        if not name or len(name) > 100:
+            raise click.ClickException("Name must be 1 to 100 characters.")
+        if not _EMAIL.match(email) or len(email) > 254:
+            raise click.ClickException("Enter a valid email address.")
+        if not 8 <= len(password) <= 128:
+            raise click.ClickException("Password must be 8 to 128 characters.")
+        if User.query.filter_by(email=email).first():
+            raise click.ClickException("An account with that email already exists.")
+        user = User(full_name=name, email=email, role="fc", password_hash=generate_password_hash(password))
+        db.session.add(user)
+        db.session.flush()
+        code = _unique_referral_code()
+        db.session.add(FCProfile(user_id=user.id, referral_code=code, speciality=speciality.strip(),
+                                 languages=list(languages) or ["English"]))
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            raise click.ClickException("Could not create the account. Try again.") from None
+        click.echo(f"Created FC {name} <{email}>. Referral code: {code}")

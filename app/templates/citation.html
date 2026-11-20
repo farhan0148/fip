@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container-wide citation-page">
-  <a class="back-link" href="{{ back_url }}">← Back to comparison</a>
+  <a class="back-link" href="{{ back_url }}">← {{ back_label or "Back to comparison" }}</a>
   <h1 class="page-title">Source: {{ clause.policy.document_ref or (clause.policy.name ~ " sample policy contract") }}</h1>
   <p class="page-sub">Opened from a comparison citation · page {{ view_page }}. Sample excerpt with fictional wording.</p>
 
@@ -38,7 +38,7 @@
       <section class="card">
         <h2 class="card-title">Something unclear?</h2>
         <p class="small muted">Send this clause and your question to your FC.</p>
-        <button type="button" class="btn btn-primary is-unavailable" disabled aria-disabled="true">Send to my FC <span class="pill">Soon</span></button>
+        <a class="btn btn-primary" href="{{ url_for('sharing.new', category='flagged_items') }}">Send to my FC</a>
       </section>
     </aside>
   </div>

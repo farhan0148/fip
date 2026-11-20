@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-question">
+  <p class="eyebrow">You're in control</p>
+  <h1 class="page-title">Send to my FC</h1>
+  <p class="page-sub">First choose your Financial Consultant (FC). Nothing is shared and no FC is told about you yet. You choose what to share on the next step.</p>
+
+  {% if error %}<p class="form-error" role="alert">{{ error }}</p>{% endif %}
+
+  <div class="choice-grid">
+    <section class="card" aria-labelledby="ref-title">
+      <h2 class="card-title" id="ref-title">I have a referral code</h2>
+      <p class="small muted">Enter the code your FC gave you, for example FC-2048. You'll see their name before you decide.</p>
+      <form method="post" action="{{ url_for('sharing.choose_fc') }}" novalidate>
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="choice" value="referral">
+        {% if category %}<input type="hidden" name="category" value="{{ category }}">{% endif %}
+        <div class="field">
+          <label for="code">Referral code</label>
+          <input id="code" name="code" type="text" autocomplete="off" maxlength="20" placeholder="FC-2048" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Check code</button>
+      </form>
+    </section>
+
+    <section class="card" aria-labelledby="rand-title">
+      <h2 class="card-title" id="rand-title">Match me randomly</h2>
+      <p class="small muted">We pick an available FC who speaks your language. You'll see their name before you decide.</p>
+      <form method="post" action="{{ url_for('sharing.choose_fc') }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="choice" value="random">
+        {% if category %}<input type="hidden" name="category" value="{{ category }}">{% endif %}
+        <button type="submit" class="btn btn-secondary">Match me</button>
+      </form>
+    </section>
+  </div>
+  <p class="small"><a href="{{ url_for('dashboard.index') }}">Cancel</a></p>
+</div>
+{% endblock %}

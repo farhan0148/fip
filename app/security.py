@@ -34,17 +34,49 @@ def load_current_user():
 
 
 def home_for(user):
-    """Where a signed-in user belongs: unfinished onboarding or the dashboard."""
+    """Where a signed-in user belongs: the FC portal, unfinished onboarding or the dashboard."""
+    if user.role == "fc":
+        return url_for("fc.index")
     if user.review_confirmed_at is None:
         return url_for("onboarding.resume")
     return url_for("dashboard.index")
 
 
-def login_required(view):
+def session_required(view):
+    """Any signed-in user, whatever the role (used by log out)."""
+
     @wraps(view)
     def wrapped(*args, **kwargs):
         if g.user is None:
             return redirect(url_for("auth.login"))
+        return view(*args, **kwargs)
+
+    return wrapped
+
+
+def login_required(view):
+    """A signed-in CLIENT. FCs are sent to their own portal."""
+
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if g.user is None:
+            return redirect(url_for("auth.login"))
+        if g.user.role == "fc":
+            return redirect(url_for("fc.index"))
+        return view(*args, **kwargs)
+
+    return wrapped
+
+
+def fc_required(view):
+    """A signed-in FC. Anyone else gets a 404, so clients cannot tell /fc exists."""
+
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if g.user is None:
+            return redirect(url_for("auth.login"))
+        if g.user.role != "fc":
+            abort(404)
         return view(*args, **kwargs)
 
     return wrapped
@@ -57,6 +89,8 @@ def onboarding_complete_required(view):
     def wrapped(*args, **kwargs):
         if g.user is None:
             return redirect(url_for("auth.login"))
+        if g.user.role == "fc":
+            return redirect(url_for("fc.index"))
         if g.user.review_confirmed_at is None:
             return redirect(url_for("onboarding.resume"))
         return view(*args, **kwargs)

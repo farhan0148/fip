@@ -20,6 +20,18 @@ DEMO_POLICIES = (
          description="Multi-pay critical illness cover for up to 120 conditions.",
          document_ref="PRUCritical Care sample policy contract (fictional)",
          death_cover_cents=10_000_000, cover_ends_at_age=75),
+    dict(insurer="Demo Insurer", name="PRULife Whole", type="Whole life", monthly_premium_cents=17600,
+         description="Whole life cover that also builds a cash value over time.",
+         document_ref="PRULife Whole sample policy contract (fictional)",
+         death_cover_cents=25_000_000, cover_ends_at_age=None),
+    dict(insurer="Demo Insurer", name="PRURetire Income", type="Retirement", monthly_premium_cents=25000,
+         description="Saves towards a guaranteed monthly income from age 65.",
+         document_ref="PRURetire Income sample policy contract (fictional)",
+         death_cover_cents=0, cover_ends_at_age=None),
+    dict(insurer="Demo Insurer", name="PRUDisability Guard", type="Disability", monthly_premium_cents=6800,
+         description="Pays a monthly income if illness or injury stops you working.",
+         document_ref="PRUDisability Guard sample policy contract (fictional)",
+         death_cover_cents=0, cover_ends_at_age=None),
 )
 
 CLAUSES = {
@@ -51,6 +63,33 @@ CLAUSES = {
         (6, "5.2", 3, "Hospital and medical expenses are not covered under this plan."),
         (9, "7.1", 4, "The plan may build a surrender value after year 10. The amount is shown in the Policy Schedule."),
     ),
+    "PRULife Whole": (
+        (2, "2.1", 3, "Premiums are fixed at the amount in the Policy Schedule and are payable for 20 years."),
+        (3, "3.1", 4, "The cover lasts for the whole of the Life Assured's life, as long as premiums are paid for the premium term."),
+        (3, "3.2", 6, "On death the Company will pay the Sum Assured of S$250,000 plus any bonuses declared."),
+        (5, "4.4", 2, "This plan does not pay for hospital, surgical or other medical expenses."),
+        (8, "6.3", 5, "After the third policy year the plan builds a cash value that can be withdrawn by surrendering the policy."),
+        (11, "9.1", 3, "Critical Illness Rider (optional): for an extra premium, a lump sum is paid on diagnosis of a listed critical illness."),
+        (14, "12.3", 2, "Premium waiver rider (optional): premiums are waived if the Life Assured becomes totally disabled. An extra premium applies."),
+    ),
+    "PRURetire Income": (
+        (2, "2.1", 3, "Premiums are fixed for the first 10 years and may be reviewed after that."),
+        (3, "3.1", 4, "The plan pays a guaranteed monthly income from the payout start age of 65 for 20 years."),
+        (3, "3.3", 8, "If the Life Assured dies before age 65, the Company will return the premiums paid, without interest."),
+        (5, "4.6", 3, "This plan does not pay for hospital, surgical or other medical expenses."),
+        (7, "5.2", 5, "Any income above the guaranteed amount is not guaranteed and depends on how the plan performs."),
+        (9, "7.1", 4, "The surrender value in the early years may be less than the premiums paid."),
+        (12, "10.2", 2, "Premium waiver rider (optional): premiums are waived if the Life Assured becomes totally disabled. An extra premium applies."),
+    ),
+    "PRUDisability Guard": (
+        (2, "2.1", 4, "Premiums are fixed for the first 5 years and may be reviewed after that."),
+        (3, "3.1", 5, "The cover ends when the Life Assured reaches age 65."),
+        (3, "3.2", 7, "If the Life Assured is totally disabled for more than 90 days, the Company will pay a monthly benefit of 75% of the insured income, up to the limit in the Policy Schedule."),
+        (4, "3.5", 3, "This plan provides no death benefit."),
+        (5, "4.2", 2, "This plan does not pay for hospital, surgical or other medical expenses."),
+        (8, "6.1", 3, "This plan has no cash value."),
+        (10, "8.1", 6, "Claims arising from a condition that existed before the policy start date are not covered."),
+    ),
 }
 
 CELLS = {
@@ -78,4 +117,36 @@ CELLS = {
         ("hospital", "not_included", "Does not pay hospital or medical bills.", (6, 3)),
         ("critical_illness", "included", "Pays a lump sum on first diagnosis of a listed condition, after a 90-day waiting period.", (3, 6)),
     ),
+    "PRULife Whole": (
+        ("duration", "included", "Covers you for life while premiums are paid for the premium term.", (3, 4)),
+        ("premium", "included", "S$176 a month, fixed, payable for 20 years.", (2, 3)),
+        ("death_cover", "included", "Pays the S$250,000 Sum Assured plus any declared bonuses on death.", (3, 6)),
+        ("cash_value", "included", "Builds a cash value after the third policy year that you can withdraw by surrendering the policy.", (8, 5)),
+        ("hospital", "not_included", "Does not pay hospital or medical bills.", (5, 2)),
+        ("critical_illness", "optional_rider", "Available as an optional rider at extra cost.", (11, 3)),
+        ("premium_waiver", "optional_rider", "Available as an optional rider at extra cost. Premiums are waived if you become totally disabled.", (14, 2)),
+    ),
+    "PRURetire Income": (
+        ("duration", "included", "Pays a guaranteed monthly income from age 65 for 20 years.", (3, 4)),
+        ("premium", "included", "S$250 a month, fixed for the first 10 years and then it may be reviewed.", (2, 3)),
+        ("death_cover", "included", "Returns the premiums paid, without interest, if you die before age 65.", (3, 8)),
+        ("cash_value", "unconfirmed", "The surrender value in the early years may be less than the premiums paid, but the wording gives no amounts.", (9, 4)),
+        ("hospital", "not_included", "Does not pay hospital or medical bills.", (5, 3)),
+        ("premium_waiver", "optional_rider", "Available as an optional rider at extra cost. Premiums are waived if you become totally disabled.", (12, 2)),
+    ),
+    "PRUDisability Guard": (
+        ("duration", "included", "Cover runs to age 65.", (3, 5)),
+        ("premium", "included", "S$68 a month, fixed for the first 5 years and then it may be reviewed.", (2, 4)),
+        ("death_cover", "included", "Pays a monthly benefit of 75% of insured income if you are totally disabled for more than 90 days. There is no death benefit.", (3, 7)),
+        ("cash_value", "not_included", "No cash value.", (8, 3)),
+        ("hospital", "not_included", "Does not pay hospital or medical bills.", (5, 2)),
+    ),
 }
+
+# Two fictional demo FCs (is_demo). Names follow the Figma sample screens.
+DEMO_FCS = (
+    dict(email="fc.daniel@example.com", name="Daniel Koh", referral_code="FC-2048",
+         speciality="Family protection", languages=["English", "中文"]),
+    dict(email="fc.jane@example.com", name="Jane Tan", referral_code="FC-3117",
+         speciality="Hospitalisation and retirement", languages=["English", "Bahasa Melayu"]),
+)

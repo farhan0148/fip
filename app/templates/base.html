@@ -10,7 +10,18 @@
 <body class="{% block body_class %}{% endblock %}">
   <a class="skip-link" href="#main">Skip to content</a>
   {% block nav %}
-  {% if current_user %}
+  {% if current_user and current_user.role == 'fc' %}
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('fc.index') }}">Insurance Navigator <span class="fc-tag">FC portal</span></a>
+    <nav class="topnav" aria-label="Main">
+      <span class="muted small">{{ current_user.full_name }}</span>
+      <form method="post" action="{{ url_for('auth.logout') }}" class="logout-form">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button type="submit" class="linklike">Log out</button>
+      </form>
+    </nav>
+  </header>
+  {% elif current_user %}
   <header class="topbar">
     <a class="brand" href="{{ url_for('auth.index') }}">Insurance Navigator</a>
     <nav class="topnav" aria-label="Main">

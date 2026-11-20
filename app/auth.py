@@ -6,7 +6,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from .extensions import db
 from .models import User
-from .security import check_csrf, home_for, login_required
+from .security import check_csrf, home_for, session_required
 
 bp = Blueprint("auth", __name__)
 
@@ -61,6 +61,7 @@ def signup():
                 full_name=values["full_name"],
                 email=values["email"],
                 password_hash=generate_password_hash(password),
+                role="client",  # public sign-up can only ever create clients; FCs come from `flask create-fc`
             )
             db.session.add(user)
             try:
@@ -99,7 +100,7 @@ def login():
 
 
 @bp.post("/logout")
-@login_required
+@session_required
 def logout():
     check_csrf()
     session.clear()

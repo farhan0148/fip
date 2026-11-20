@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% set reasons = {
+  "not_configured": "The AI summary is not set up on this server, so the standard summary is shown.",
+  "timeout": "The AI service took too long, so the standard summary is shown.",
+  "error": "The AI service could not be reached, so the standard summary is shown.",
+  "empty": "The AI service returned nothing, so the standard summary is shown.",
+  "invalid_output": "The AI summary did not match the policy wording, so it was not used. The standard summary is shown.",
+  "rate_limited": "Too many summaries were requested just now, so the standard summary is shown.",
+  "busy": "The AI service is busy right now, so the standard summary is shown. Try again in a minute.",
+  "no_clauses": "No policy wording is loaded for this plan yet."
+} %}
+{% block content %}
+<div class="container-wide plan-page">
+  <a class="back-link" href="{{ url_for('dashboard.index') }}">← Back to dashboard</a>
+
+  <section class="card plan-head" aria-labelledby="plan-title">
+    <div>
+      <div class="chips">
+        {% if best %}<span class="chip chip-success">Best match</span>{% endif %}
+        <span class="chip chip-info">{{ policy.type }}</span>
+        <span class="chip chip-muted">Demo data</span>
+      </div>
+      <h1 class="page-title" id="plan-title">{{ policy.name }}</h1>
+      <p class="muted">{{ policy.description }} Fictional sample plan.</p>
+    </div>
+    <div class="plan-head-side">
+      <p class="price">{{ policy.monthly_premium_cents | money }}<span class="muted small"> /mo</span></p>
+      <div class="plan-actions">
+        <a class="btn btn-secondary" href="{{ compare_url }}">Compare</a>
+        <a class="btn btn-secondary" href="{{ url_for('simulator.index') }}">See impact on my gap</a>
+        <button type="button" class="btn btn-primary is-unavailable" disabled aria-disabled="true">Get this plan <span class="pill">Soon</span></button>
+      </div>
+    </div>
+  </section>
+
+  <div class="plan-cols">
+    <section class="card summary-card-plan" aria-labelledby="summary-title">
+      <div class="summary-top">
+        <h2 class="card-title" id="summary-title">Plan summary</h2>
+        <nav class="lang-tabs" aria-label="Summary language">
+          {% for code, name in languages %}
+            <a href="{{ url_for('plans.detail', plan_id=policy.id, lang=code) if code != 'en' else url_for('plans.detail', plan_id=policy.id) }}" lang="{{ code }}"
+               class="lang-tab{% if code == language %} is-active{% endif %}"{% if code == language %} aria-current="true"{% endif %}>{{ name }}</a>
+          {% endfor %}
+        </nav>
+      </div>
+
+      <p><span class="chip {{ 'chip-info' if summary.source == 'ai' else 'chip-muted' }}" id="summary-label">{{ summary.label }}</span></p>
+      {% if summary.note %}<p class="notice" role="status">{{ summary.note }}.</p>{% endif %}
+      {% if summary.source == 'standard' and summary.language == 'en' and summary.reason in reasons %}
+        <p class="small muted">{{ reasons[summary.reason] }}</p>
+      {% endif %}
+
+      {% if summary.statements %}
+      <div id="summary-text" lang="{{ summary.language }}" class="plan-summary-text">
+        {% for s in summary.statements %}
+        <p class="stmt"><span class="stmt-text">{{ s.text }}</span>
+          {% for m in s.markers %}<sup class="cite"><a href="{{ m.url }}" aria-label="Open source {{ m.n }}">[{{ m.n }}]</a></sup>{% endfor %}</p>
+        {% endfor %}
+      </div>
+      <div class="read-aloud">
+        <button type="button" class="btn btn-small btn-secondary" id="read-aloud" data-lang="{{ speech_lang }}" disabled>Read aloud</button>
+        <span class="small muted" id="read-aloud-status" role="status"></span>
+      </div>
+      <h3 class="data-sub">Sources</h3>
+      <p class="small muted">Open the policy document at the exact line. Sample excerpt with fictional wording.</p>
+      <ol class="sources">
+        {% for src in summary.sources %}
+        <li id="src-{{ src.n }}"><a href="{{ src.url }}">[{{ src.n }}] {{ src.ref }}</a> <span class="muted small">“{{ src.text }}”</span></li>
+        {% endfor %}
+      </ol>
+      {% else %}
+      <p class="empty">No summary is available because no policy wording is loaded for this plan.</p>
+      {% endif %}
+    </section>
+
+    <div class="plan-side">
+      <section class="card" aria-labelledby="budget-title">
+        <h2 class="card-title" id="budget-title">Budget trade-off</h2>
+        <p><strong>{{ tradeoff.headline }}</strong></p>
+        {% if tradeoff.known %}
+          <svg class="budget-bar" viewBox="0 0 300 14" role="img" aria-label="Premium {{ tradeoff.premium }} against a band topping out at S${{ tradeoff.high_cents // 100 }}">
+            <rect width="300" height="14" rx="7" class="bar-bg"/>
+            <rect width="{{ [ (tradeoff.premium_cents * 300 // tradeoff.high_cents), 300 ] | min }}" height="14" rx="7" class="bar-fill {{ 'bar-strong' if tradeoff.fits else 'bar-weak' }}"/>
+          </svg>
+          <p class="small">{{ tradeoff.detail }}</p>
+        {% endif %}
+        <p class="small muted">{{ tradeoff.note }}</p>
+      </section>
+
+      <section class="card" aria-labelledby="fit-title">
+        <h2 class="card-title" id="fit-title">Compatibility with you</h2>
+        <ul class="fit-list">
+          {% for row in fit_rows %}
+          <li class="fit-row">
+            <div class="fit-head"><strong>{{ row.title }}</strong><span class="chip {{ row.chip }}">{{ row.label }}</span></div>
+            {% if row.driver %}<p class="small muted">{{ row.driver }}</p>{% endif %}
+            <p class="small">{{ row.text }}</p>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+    </div>
+  </div>
+
+  {% if simple %}
+  <section class="card" aria-labelledby="simple-title">
+    <div class="section-head">
+      <div>
+        <h2 class="card-title" id="simple-title">How it compares to similar plans</h2>
+        <p class="small muted">From the same sample policy wording as the full comparison.</p>
+      </div>
+      <a class="btn btn-primary" href="{{ simple.full_url }}">Open full comparison</a>
+    </div>
+    <div class="table-scroll">
+    <table class="cmp-table simple-table">
+      <caption class="sr-only">{{ policy.name }} compared with similar plans</caption>
+      <thead>
+        <tr><th scope="col">Policy</th>
+          {% for p in simple.plans %}<th scope="col">{{ p.name }}{% if p.id == policy.id %}<span class="th-sub">This plan</span>{% else %}<span class="th-sub">{{ p.type }}</span>{% endif %}</th>{% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in simple.rows %}
+        <tr>
+          <th scope="row">{{ row.label }}</th>
+          {% for c in row.cells %}
+          <td><span class="state state-{{ c.state }}">{{ c.state_label }}</span><p class="small muted">{{ c.finding }}</p></td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </section>
+  {% endif %}
+
+  <p class="small muted plan-disclaimer">Summaries and fit checks are estimates for discussion, to be confirmed with your Financial Consultant (FC). This is not advice to buy. Plans and wording are fictional sample data.</p>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/plan-readaloud.js') }}" defer></script>
+{% endblock %}

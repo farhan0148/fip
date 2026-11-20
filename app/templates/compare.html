@@ -99,7 +99,7 @@
 
     <div class="compare-foot">
       <p class="small muted">Clause links open the source page at the exact line. Findings are plain-language estimates to be confirmed with your FC.</p>
-      <button type="button" class="btn btn-secondary is-unavailable" disabled aria-disabled="true">Send flagged items to my FC ({{ flag_count }}) <span class="pill">Soon</span></button>
+      <a class="btn btn-secondary" href="{{ url_for('sharing.new', category='flagged_items') }}">Send flagged items to my FC ({{ flag_count }})</a>
     </div>
   </div>
   {% endif %}

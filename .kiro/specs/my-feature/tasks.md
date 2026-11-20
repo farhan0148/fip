@@ -71,6 +71,48 @@ Scenario: gap today S$402,000, PRUActive Term effect -S$500,000, final gap -S$98
 
 Known limits: the checker judges figures, direction in gap clauses and negative-gap wording. It cannot judge every possible sentence, so an unusual but wrong reply could still pass, and an unusual correct reply could fall back to the standard explanation.
 
+## Checkpoint 5 (built): consent-based sharing and a minimal FC portal
+
+- **Roles:** public sign-up always creates `role="client"`. FCs are created only by `flask create-fc --email --name` (password prompted and hidden) or by `seed-demo` (two fictional demo FCs: Daniel Koh `FC-2048`, Jane Tan `FC-3117`). FCs sign in on the same page and land on `/fc`. Clients get a 404 on `/fc`. FCs are redirected to `/fc` from every client page and action. New tables: `fc_profiles`, `fc_assignments`, `share_grants`, `share_events` (additive migration).
+- **Consent screen** `/sharing/new`: step 1 (only if no FC yet) is a referral code (previewed by name and speciality only) or a random match (least-loaded FC who speaks the client's language). Step 2 has three unticked categories (`profile_answers`, `simulator`, `flagged_items`), each showing exactly what the FC would see today. Only the item the client came from is pre-ticked. The assignment and the grants are created only on "Confirm and share", with at least one item ticked. The dashboard score and radar are never shareable.
+- **Entry points enabled:** dashboard "Send to my FC" (profile), simulator "Review with my FC" (simulator), comparison "Send flagged items to my FC" (flagged items), citation "Send to my FC" (flagged items).
+- **Sharing page** `/sharing`: active grants with Revoke, the trust banner, and an activity log (granted, revoked, viewed). `share_events` is append-only by design: the app only inserts, and an ORM guard blocks updates.
+- **FC portal:** `/fc` lists only clients with an active grant, with what is shared and since when. `/fc/clients/<id>` shows only the granted categories. One function, `app/sharing.py: visible_categories(fc, client_id)`, decides access for every FC route. A grant counts only while it is active and the client is assigned to that FC. Anything else answers the same 404, so ids reveal nothing. Ungranted categories are never queried. A name is part of `profile_answers`, so it is shown only when that is granted ("Client #id" otherwise). Every view writes a `viewed` event. FC pages are read only.
+- **Controls:** CSRF on every POST, wrong referral codes limited to 5 per 10 minutes per client (in memory, `app/ratelimit.py`), free text escaped, fixed error messages only.
+
+Decisions I made where the spec was silent:
+
+- A grant is a live permission, not a snapshot. The FC sees the latest saved data until the client revokes.
+- Choosing an FC assigns nothing. The FC is told nothing until the client confirms at least one item.
+- The citation page button has no "clause and question" category, so it opens consent with flagged items pre-ticked.
+- Random match uses the least-loaded FC who speaks the client's language, with a random tie-break. Matching on needs is not built.
+- Figma's consent screen shows more categories, some on by default. R5 says off by default and the demo score is a sample value, so only the three categories above exist, all unticked.
+
+Remaining for FC work (not built): incoming-client Accept/Decline and AI pre-meeting summary (F6), client profile tabs (notes), gap analysis (F3), video meeting and summary (F4), ROA draft and sign-off (F5), Change FC with review, Clear my data, the trust banner on every main screen, an FC-initiated "request access".
+
+## Checkpoint 6 (built): Plans, plan detail and top-3 matching
+
+- **Catalogue:** `app/catalogue.py: catalogue_policies()` is the only source of plans for the Plans pages and the dashboard top 3 (today: demo plans). `seed-demo` now loads six fictional plans: the original three (unchanged) plus PRULife Whole (whole life), PRURetire Income (retirement) and PRUDisability Guard (disability), each with sample clauses and comparison cells.
+- **/plans:** filters by type through the query string (works without JavaScript, stays on reload, unknown values show all), cards with premium, "View plan" and "Compare", an honest empty state, nav "Plans" now points here.
+- **Dashboard top 3** (replaces "Sample plans"): rules in `app/plan_match.py`. A plan whose type matches a Review priority ranks first (earlier priority first), then plans that fit the Q4 budget band, then catalogue order. Skipped, Not sure and typed-in answers are unknown and never match. "Best match" only on #1, with a one-line reason. If nothing matches, the first three plans show with no tag and a note. The demo score section is untouched.
+- **/plans/<id>:**
+  - **Summary:** AI plan summary (all AI code in `app/ai/plan_summary.py`), grounded in that plan's clauses only. The model sees no client data, so one cached summary (`plan_summaries`) serves everyone. Generated on the first view that finds no usable cache, rate-limited per user. A failed generation is remembered for an hour, and a missing key, our rate limit, or the provider being busy (429) is never remembered.
+  - **Validation:** every statement must cite supplied clause ids, every number must appear in a cited clause or be the plan's premium, and advice wording is rejected. Anything else gives the deterministic "Standard summary" built from the plan's comparison cells.
+  - **Citations:** markers [n] link to the existing citation page and a Sources list sits under the text. The citation page got an optional `?plan=` so its back link can return to the plan.
+  - **Translations:** EN | 中文 | BM | தமிழ் tabs. Translations come from the validated English statements and are accepted only if every digit sequence and clause id is kept exactly; otherwise English shows with "Translation unavailable, showing English".
+  - **Read Aloud:** browser speech synthesis only, no network request, disabled with a message when no voice exists.
+  - **Fit sections:** deterministic budget trade-off, four compatibility rows (family obligations, budget fit, hospital preference, overlap with cover you have), each with the answer that drove it or "Not enough information", and a simplified comparison against up to two similar plans.
+- `flask generate-summaries [--language ...] [--force]` pre-fills the cache.
+
+Decisions I made where the spec was silent:
+
+- A plan counts as matched if its type matches a priority OR its premium fits the budget band. "Under S$100" excludes S$100; the other bands include their top.
+- Whole life and term life both speak to the "dependants" priority. The "existing cover" priority matches no plan type.
+- Overlap uses the saved simulator scenario first, then the Q8 answer.
+- The summary module makes its own provider call (same SDK class and settings) because `app/ai/client.py` limits replies to 500 tokens, too small for Tamil or a full summary.
+
+Remaining (not built): real policy document ingestion (the catalogue is still the fictional sample plans), other insurers, "My Plans" (plans the client already holds), a full multilingual review of the translations, "Get this plan" and the purchase flow (task 10), a summary regeneration schedule or admin view.
+
 ## Implementation tasks (suggested order)
 
 - [ ] 1. Set up project, design tokens and shared components (button, card, chip, cell state, nav)
@@ -85,29 +127,35 @@ Known limits: the checker judges figures, direction in gap clauses and negative-
 - [ ] 4. Coverage map, score and dashboard
   - Done: dashboard layout, "Welcome, {first name}", profile summary from answered questions only, "Review priorities" card (rules in `app/priorities.py`), fictional sample plan cards, unavailable actions marked "Soon".
   - **Open: the real coverage calculation.** The score, radar and six percentages now show a fixed demo fixture (labelled "Illustrative demo values"). Replace the fixture with an agreed calculation from answers (and later policies) to the score and the six areas, then remove the demo label.
-  - Open: "Top 3 recommended plans" matching. Cards are sample data and are not matched to the user, so the "Best match" tag is not shown.
-  - Open: **Send to my FC** (consent flow, task 9).
-- [ ] 5. Plans list and plan detail with language tabs
+  - Done (checkpoint 6): "Top 3 plans for you" is matched to the questionnaire (type matches a Review priority, then budget fit), "Best match" only on #1, honest "no match" state. Still sample data.
+  - Done (checkpoint 5): **Send to my FC** opens the consent flow (task 9).
+- [x] 5. Plans list and plan detail with language tabs
+  - Done: see Checkpoint 6. Not built: real policy ingestion, other insurers, "My Plans", a full multilingual review of the translations, "Get this plan".
 - [ ] 6. Citation model and PDF viewer with line highlighting
   - Done (sample only): `PolicyClause` model, citation page that shows the cited line highlighted with its line number, the claim and "Matches: clause X, line Y", and paging across the seeded sample pages.
-  - Remaining: real PDF documents and rendering, download and "Open on Prudential.com.sg", "Other citations" list, "Send to my FC" (needs consent, task 9), citations from plan-detail AI summaries (task 5).
+  - Remaining: real PDF documents and rendering, download and "Open on Prudential.com.sg", "Other citations" list, citations from plan-detail AI summaries (task 5).
 - [ ] 7. Comparison table with four cell states and clause links
   - Done: two-plan side-by-side table, four states (Included (subject to conditions), Optional rider, Unconfirmed, Not included), clause link on every cell that has a source, shared rows versus auto-detected distinctive rows, "Show original wording" toggle, "Flag for my FC to verify" on Unconfirmed cells (stored privately per user), plan selection and fallback for invalid ids.
   - Missing information is shown as Unconfirmed with "Not stated in this policy." and "No source clause found". "Not included" always needs a cited clause, enforced by a database constraint.
-  - Remaining: more than two policies, adding other insurers by upload or link, "Send flagged items to my FC" (consent, task 9), extraction accuracy, the "Try a scenario" preview (future iteration), real policy documents, an "Add to compare" path from a plan-detail page (task 5).
+  - Remaining: more than two policies, adding other insurers by upload or link, extraction accuracy, the "Try a scenario" preview (future iteration), real policy documents, an "Add to compare" path from a plan-detail page (task 5).
   - Open: the Figma table shows premium per year. The sample data shows monthly premiums to match the plan cards.
 - [x] 8. Coverage Needs Simulator (formulas, plans, events, chart, breakdown)
   - Done for death cover: inputs, formulas, add/remove plans, four life events, chart with term-expiry note, rule-based "What changed, and why", save and restore. Worked example verified: S$130,000 / S$580,000 / S$80,000.
-  - Not built: more than one saved scenario (the Figma "Today / Scenario A / + New scenario" tabs), Critical Illness and Disability modes (shown as "Coming next"), "Review with my FC" (needs consent, task 9), life-event prompts (future development).
+  - Not built: more than one saved scenario (the Figma "Today / Scenario A / + New scenario" tabs), Critical Illness and Disability modes (shown as "Coming next"), life-event prompts (future development).
   - Open: retire at 55/65 and job break are listed in the spec but their effect on a death-cover need is not defined. They show in the event list as disabled ("not modelled yet") and the server rejects them.
   - Open: existing death cover is typed in. The spec says it is pre-filled from the client's plans, but the app has no record of plans the client already holds.
   - Done (checkpoint 4): AI "Explain this change" beside the rule-based breakdown, with a standard-template fallback.
   - Open: the Figma mock-up lists three events (home, child, pay down mortgage at 40) next to a S$580,000 "after life events" card. S$580,000 is only reached with home and child, as in design.md, so the pay-down is not part of that figure.
-- [ ] 9. Consent screen and ShareGrant
+- [x] 9. Consent screen and ShareGrant
+  - Done: consent screen with referral code or random match, three unticked categories with a live preview, `ShareGrant`, `ShareEvent`, revoke, the four entry points, the trust banner on `/sharing`. See Checkpoint 5.
+  - Not built: Change FC (3 steps) and "Clear my data" (task 11), consent for the other categories in Figma (coverage map, quiz results, questions, meeting notes).
 - [ ] 10. Buy or consult, comprehension quiz, payment
 - [ ] 11. Settings, Change FC, Clear my data, trust banner
+  - Not built in checkpoint 5: Change FC with review, Clear my data. A trust banner exists only on `/sharing`.
   - The trust banner and Clear Session (C16) are not on the Figma onboarding screens and are not built yet.
 - [ ] 12. FC portal: client list, profile, gap, incoming client
+  - Done: FC accounts and login, client list limited to granted clients, read-only client view limited to granted categories, view log. See Checkpoint 5.
+  - Remaining: incoming client (Accept / Decline and the AI pre-meeting summary), notes, gap analysis, and the other FC tabs.
 - [ ] 13. Video meeting with AI summary
 - [ ] 14. ROA draft, sign-off, locked version with audit log
 - [ ] 15. Accessibility and multilingual pass

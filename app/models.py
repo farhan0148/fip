@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import CheckConstraint, UniqueConstraint
+from sqlalchemy import CheckConstraint, UniqueConstraint, event
 
 from .extensions import db
 
@@ -167,3 +167,123 @@ class Scenario(db.Model):
     # Result recalculated by Flask at save time.
     result = db.Column(db.JSON, nullable=False)
     updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)
+
+
+# ---------- FC accounts, assignment and consent-based sharing ----------
+
+SHARE_CATEGORIES = ("profile_answers", "simulator", "flagged_items")
+SHARE_ACTIONS = ("granted", "revoked", "viewed")
+
+
+class FCProfile(db.Model):
+    """Extra details for a user whose role is 'fc'. Created by `flask create-fc` or `flask seed-demo`."""
+
+    __tablename__ = "fc_profiles"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True
+    )
+    referral_code = db.Column(db.String(20), nullable=False, unique=True)
+    speciality = db.Column(db.String(120), nullable=False, default="")
+    languages = db.Column(db.JSON, nullable=False, default=list)
+
+    user = db.relationship("User")
+
+
+class FCAssignment(db.Model):
+    """The one FC a client has chosen. Created only when the client confirms sharing."""
+
+    __tablename__ = "fc_assignments"
+
+    id = db.Column(db.Integer, primary_key=True)
+    client_id = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True
+    )
+    fc_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    method = db.Column(db.String(10), nullable=False)
+    assigned_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+
+    __table_args__ = (CheckConstraint("method IN ('referral', 'random')", name="ck_assignment_method"),)
+
+
+class ShareGrant(db.Model):
+    """Permission for one FC to see one category of one client's data. revoked_at NULL means active."""
+
+    __tablename__ = "share_grants"
+
+    id = db.Column(db.Integer, primary_key=True)
+    client_id = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    fc_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    category = db.Column(db.String(30), nullable=False)
+    granted_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+    revoked_at = db.Column(db.DateTime(timezone=True))
+
+    __table_args__ = (
+        CheckConstraint(
+            "category IN ('profile_answers', 'simulator', 'flagged_items')", name="ck_grant_category"
+        ),
+        # One active grant per client, FC and category. A revoked row does not block a new grant.
+        db.Index(
+            "uq_active_grant", "client_id", "fc_id", "category",
+            unique=True, postgresql_where=db.text("revoked_at IS NULL"),
+        ),
+    )
+
+
+class ShareEvent(db.Model):
+    """Append-only log of consent changes and FC views. The app only ever inserts rows here."""
+
+    __tablename__ = "share_events"
+
+    id = db.Column(db.Integer, primary_key=True)
+    client_id = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    fc_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    category = db.Column(db.String(30), nullable=False)
+    action = db.Column(db.String(10), nullable=False)
+    at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+
+    __table_args__ = (
+        CheckConstraint("action IN ('granted', 'revoked', 'viewed')", name="ck_event_action"),
+        CheckConstraint(
+            "category IN ('profile_answers', 'simulator', 'flagged_items')", name="ck_event_category"
+        ),
+    )
+
+
+@event.listens_for(ShareEvent, "before_update")
+def _share_events_are_append_only(mapper, connection, target):
+    raise RuntimeError("share_events is append-only: rows are never updated")
+
+
+class PlanSummary(db.Model):
+    """Cached plan summary, the same for every user (it is built from the plan's own clauses only).
+
+    language "en" holds the source summary. Other languages are translations of the validated
+    English statements. source "standard" with no statements means a translation was not available.
+    """
+
+    __tablename__ = "plan_summaries"
+
+    id = db.Column(db.Integer, primary_key=True)
+    policy_id = db.Column(
+        db.Integer, db.ForeignKey("policies.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    language = db.Column(db.String(5), nullable=False)
+    # [{"text": str, "clause_ids": [int, ...]}, ...]
+    statements = db.Column(db.JSON, nullable=False, default=list)
+    source = db.Column(db.String(10), nullable=False)
+    # Why a standard summary was used (timeout, error, invalid_output, ...). NULL for AI summaries.
+    reason = db.Column(db.String(30))
+    # Hash of the plan, its clauses (and, for translations, the English text they came from).
+    clauses_hash = db.Column(db.String(64), nullable=False)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("policy_id", "language", name="uq_summary_policy_language"),
+        CheckConstraint("source IN ('ai', 'standard')", name="ck_summary_source"),
+    )

@@ -1,0 +1,47 @@
+{# Renders one category's data. Used for the client's preview and for the FC's view, so both always match. #}
+{% macro show(data) %}
+  {% if data.kind == "profile" %}
+    <dl class="data-list">
+      <div><dt>Name</dt><dd>{{ data.name }}</dd></div>
+      {% for caption, value in data.answers %}
+      <div><dt>{{ caption }}</dt><dd>{% if value %}{{ value }}{% else %}<em class="muted">Not answered</em>{% endif %}</dd></div>
+      {% endfor %}
+    </dl>
+  {% elif data.kind == "simulator" %}
+    {% if not data.saved %}
+      <p class="muted">No scenario has been saved yet. There is nothing to see until one is saved.</p>
+    {% else %}
+      <p class="small muted">Last saved {{ data.saved_at.strftime("%d %b %Y, %H:%M") }}. Estimates only, to be confirmed with the FC.</p>
+      <dl class="data-list">
+        {% for label, value in data.fields %}<div><dt>{{ label }}</dt><dd>{{ value }}</dd></div>{% endfor %}
+        <div><dt>Added plans</dt><dd>{% if data.plans %}{{ data.plans | join(", ") }}{% else %}None{% endif %}</dd></div>
+      </dl>
+      {% if data.events %}
+      <p class="data-sub">Life events</p>
+      <ul class="data-bullets">{% for label, age, amount in data.events %}<li>{{ label }} at age {{ age }}: {{ amount }}</li>{% endfor %}</ul>
+      {% endif %}
+      <p class="data-sub">Calculated gaps</p>
+      <dl class="data-list">{% for label, value in data.gaps %}<div><dt>{{ label }}</dt><dd>{{ value }}</dd></div>{% endfor %}</dl>
+      {% if data.changes %}
+      <p class="data-sub">Effect of each change on the gap</p>
+      <ul class="data-bullets">{% for label, value in data.changes %}<li>{{ label }}: {{ value }}</li>{% endfor %}</ul>
+      {% endif %}
+    {% endif %}
+  {% elif data.kind == "flagged" %}
+    {% if not data.entries %}
+      <p class="muted">Nothing has been flagged yet.</p>
+    {% else %}
+      <ul class="flag-items">
+        {% for item in data.entries %}
+        <li>
+          <strong>{{ item.plan }} · {{ item.row }}</strong>
+          <span class="state state-unconfirmed">{{ item.state }}</span>
+          <p>{{ item.finding }}</p>
+          {% if item.source %}<p class="small muted">Cited wording ({{ item.source }}): “{{ item.wording }}”</p>
+          {% else %}<p class="small muted">No source clause found.</p>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endif %}
+{% endmacro %}

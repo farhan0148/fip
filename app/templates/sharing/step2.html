@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% from "sharing/_data.html" import show %}
+{% block content %}
+<div class="container-question">
+  <p class="eyebrow">You're in control</p>
+  <h1 class="page-title">Choose what to share</h1>
+  <p class="trust-banner" role="note">Nothing is shared until you press “Confirm and share”. Nothing is ticked for you except the item you came from.</p>
+
+  {% if error %}<p class="form-error" role="alert">{{ error }}</p>{% endif %}
+
+  <section class="card fc-card" aria-label="Your FC">
+    <div>
+      <p class="eyebrow">{% if assigned %}Your FC{% elif method == 'referral' %}FC from your referral code{% else %}Your random match{% endif %}</p>
+      <h2 class="card-title">{{ fc.name }}</h2>
+      <p class="small muted">{{ fc.speciality }}{% if fc.languages %} · {{ fc.languages | join(", ") }}{% endif %}</p>
+    </div>
+    {% if not assigned %}
+    <form method="post" action="{{ url_for('sharing.reset_fc') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      {% if preselect %}<input type="hidden" name="category" value="{{ preselect }}">{% endif %}
+      <button type="submit" class="btn btn-small btn-secondary">Choose a different FC</button>
+    </form>
+    {% endif %}
+  </section>
+
+  <form method="post" action="{{ url_for('sharing.confirm') }}" id="consent-form">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    {% for category in categories %}
+    {% set shared = category in active %}
+    <section class="card consent-item" aria-labelledby="cat-{{ category }}">
+      <label class="consent-check">
+        <input type="checkbox" name="category" value="{{ category }}" id="cat-{{ category }}-box"
+               {% if shared %}checked disabled{% elif category == preselect %}checked{% endif %}>
+        <span id="cat-{{ category }}"><strong>{{ info[category].title }}</strong>{% if shared %} <span class="tag tag-added">Already shared</span>{% endif %}</span>
+      </label>
+      <p class="small">{{ info[category].what }}</p>
+      <p class="small muted">{{ info[category].not }}</p>
+      <details open>
+        <summary>What {{ fc.name }} would see today</summary>
+        {{ show(previews[category]) }}
+      </details>
+    </section>
+    {% endfor %}
+
+    <p class="small muted">The dashboard score and radar are sample values and can never be shared. You can stop sharing any item at any time from the Sharing page.</p>
+    <div class="actions">
+      <a class="btn btn-secondary" href="{{ url_for('sharing.index') }}">Cancel</a>
+      <div class="actions-right">
+        <button type="submit" class="btn btn-primary">Confirm and share</button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

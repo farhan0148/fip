@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from flask import Flask, g, render_template
 
 from .extensions import db, migrate
+from .ratelimit import FailureLimiter
 
 
 def _database_url(raw):
@@ -41,7 +42,7 @@ def create_app(test_config=None):
     db.init_app(app)
     migrate.init_app(app, db)
 
-    from . import ai, auth, compare, dashboard, onboarding, simulator_routes
+    from . import ai, auth, compare, dashboard, fc_portal, onboarding, plans, sharing_routes, simulator_routes
     from .cli import register_commands
     from .security import add_security_headers, csrf_token, load_current_user
 
@@ -49,9 +50,17 @@ def create_app(test_config=None):
     app.register_blueprint(onboarding.bp)
     app.register_blueprint(dashboard.bp)
     app.register_blueprint(compare.bp)
+    app.register_blueprint(plans.bp)
     app.register_blueprint(simulator_routes.bp)
     register_commands(app)
     ai.register(app)
+    app.register_blueprint(sharing_routes.bp)
+    app.register_blueprint(fc_portal.bp)
+    app.config.setdefault("REFERRAL_FAILURE_LIMIT", 5)      # wrong referral codes ...
+    app.config.setdefault("REFERRAL_FAILURE_WINDOW", 600)   # ... per client, per this many seconds
+    app.extensions["referral_limiter"] = FailureLimiter(
+        app.config["REFERRAL_FAILURE_LIMIT"], app.config["REFERRAL_FAILURE_WINDOW"]
+    )
 
     app.before_request(load_current_user)
     app.after_request(add_security_headers)
@@ -59,7 +68,7 @@ def create_app(test_config=None):
     # Nav labels in one place. Disabled until the review is confirmed.
     nav_items = (
         ("Dashboard", "dashboard.index"),
-        ("Plans", "dashboard.plans"),
+        ("Plans", "plans.index"),
         ("Compare", "compare.index"),
         ("Simulator", "simulator.index"),
         ("Settings", "dashboard.settings"),

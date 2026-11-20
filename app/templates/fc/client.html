@@ -1,0 +1,14 @@
+{% extends "fc/layout.html" %}
+{% from "sharing/_data.html" import show %}
+{% block fc_content %}
+<a class="back-link" href="{{ url_for('fc.index') }}">← All clients</a>
+<h1 class="page-title">{{ label }}</h1>
+<p class="trust-banner" role="note">Shared by the client. Read only. You see only the items below, and access ends the moment the client stops sharing.</p>
+
+{% for category, item, data in sections %}
+<section class="card fc-section" aria-labelledby="sec-{{ category }}">
+  <h2 class="card-title" id="sec-{{ category }}">{{ item.short }}</h2>
+  {{ show(data) }}
+</section>
+{% endfor %}
+{% endblock %}

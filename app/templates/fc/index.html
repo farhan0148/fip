@@ -1,0 +1,28 @@
+{% extends "fc/layout.html" %}
+{% block fc_content %}
+<h1 class="page-title">My clients</h1>
+<p class="page-sub">You only see clients who have chosen to share something with you, and only the items they chose. Read only.</p>
+
+{% if clients %}
+<section class="card" aria-label="Clients sharing with you">
+  <table class="log-table client-table">
+    <thead><tr><th scope="col">Client</th><th scope="col">Shared with you</th><th scope="col">Shared since</th></tr></thead>
+    <tbody>
+      {% for c in clients %}
+      <tr>
+        <td><a href="{{ url_for('fc.client', client_id=c.client_id) }}">{{ c.label }}</a></td>
+        <td>
+          {% for category, granted_at in c.category_list %}
+          <span class="chip chip-info" title="Shared {{ granted_at.strftime('%d %b %Y, %H:%M') }}">{{ info[category].short }}</span>
+          {% endfor %}
+        </td>
+        <td>{{ c.since.strftime("%d %b %Y, %H:%M") }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% else %}
+<p class="empty">No clients are sharing with you yet. Clients appear here only after they choose to share, and only for the items they choose.</p>
+{% endif %}
+{% endblock %}

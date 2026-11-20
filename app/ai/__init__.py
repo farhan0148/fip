@@ -5,6 +5,7 @@ here and never makes a network call. The AI only explains figures the calculator
 already produced.
 """
 
+from . import cli
 from .limiter import SlidingWindowLimiter
 from .routes import bp
 
@@ -15,4 +16,11 @@ def register(app):
     app.extensions["ai_limiter"] = SlidingWindowLimiter(
         app.config["AI_RATE_LIMIT"], app.config["AI_RATE_WINDOW"]
     )
+    # Plan summaries: calls to the provider that page views may trigger (cache misses only).
+    app.config.setdefault("AI_SUMMARY_RATE_LIMIT", 10)
+    app.config.setdefault("AI_SUMMARY_RATE_WINDOW", 60)
+    app.extensions["ai_summary_limiter"] = SlidingWindowLimiter(
+        app.config["AI_SUMMARY_RATE_LIMIT"], app.config["AI_SUMMARY_RATE_WINDOW"]
+    )
+    cli.register(app)
     app.register_blueprint(bp)

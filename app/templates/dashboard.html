@@ -96,33 +96,41 @@
       {% else %}
       <p class="summary-text muted">You skipped every question, so there is nothing to summarise yet.</p>
       {% endif %}
-      <p class="muted small">Nothing is shared with your FC unless you choose to share it. Sharing is not available in this build.</p>
+      <p class="muted small">Nothing is shared with your FC unless you choose to share it. You choose what, and you can stop at any time.</p>
     </div>
-    {{ soon_button("Send to my FC", "primary") }}
+    <a class="btn btn-primary" href="{{ url_for('sharing.new', category='profile_answers') }}">Send to my FC</a>
   </section>
 
   <section aria-labelledby="plans-title">
     <div class="section-head">
       <div>
-        <h2 class="section-title" id="plans-title">Sample plans</h2>
-        <p class="muted small">Fictional demo data. These are not real products or prices, and they are not matched to you.</p>
+        <h2 class="section-title" id="plans-title">Top 3 plans for you</h2>
+        {% if top.any_match %}
+        <p class="muted small">Matched to your questionnaire answers. This is not advice to buy. Fictional demo data: invented plans and prices.</p>
+        {% else %}
+        <p class="muted small">None of the sample plans matched your answers, so these are the first three plans, shown without a match tag. This is not advice to buy. Fictional demo data: invented plans and prices.</p>
+        {% endif %}
       </div>
-      <span class="muted small is-unavailable">View all plans <span class="pill">Soon</span></span>
+      <a class="small" href="{{ url_for('plans.index') }}">View all plans →</a>
     </div>
-    {% if plans %}
+    {% if top.plans %}
     <div class="plan-grid">
-      {% for plan in plans %}
+      {% for item in top.plans %}
+      {% set plan = item.policy %}
       <article class="card plan-card">
         <div class="chips">
+          {% if item.best %}<span class="chip chip-success">Best match</span>{% endif %}
           <span class="chip chip-info">{{ plan.type }}</span>
           <span class="chip chip-muted">Demo data</span>
         </div>
         <h3>{{ plan.name }}</h3>
         <p class="muted small">{{ plan.description }}</p>
+        {% if item.reason %}<p class="match-reason small">{{ item.reason }}</p>{% endif %}
         <p class="price">{{ plan.monthly_premium_cents | money }}<span class="muted small"> /mo</span></p>
         <div class="plan-actions">
-          {{ soon_button("View plan", "primary") }}
-          {% if plans|length > 1 %}<a class="btn btn-secondary" href="{{ url_for('compare.index', a=plan.id, b=(plans[1].id if plan.id == plans[0].id else plans[0].id)) }}" aria-label="Compare {{ plan.name }} with another plan">Compare</a>{% else %}{{ soon_button("Compare") }}{% endif %}
+          <a class="btn btn-primary" href="{{ url_for('plans.detail', plan_id=plan.id) }}">View plan</a>
+          {% set other = top.plans | rejectattr('policy.id', 'equalto', plan.id) | list %}
+          <a class="btn btn-secondary" href="{{ url_for('compare.index', a=plan.id, b=(other[0].policy.id if other else None)) }}" aria-label="Compare {{ plan.name }} with another plan">Compare</a>
         </div>
       </article>
       {% endfor %}

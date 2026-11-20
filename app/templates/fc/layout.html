@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="fc-shell">
+  <aside class="fc-sidebar" aria-label="FC portal">
+    <ul>
+      <li><a href="{{ url_for('fc.index') }}" class="is-active" aria-current="page">Clients</a></li>
+      <li><span class="is-unavailable" aria-disabled="true">Gap analysis <span class="pill">Soon</span></span></li>
+      <li><span class="is-unavailable" aria-disabled="true">Meetings <span class="pill">Soon</span></span></li>
+      <li><span class="is-unavailable" aria-disabled="true">ROA drafts <span class="pill">Soon</span></span></li>
+    </ul>
+  </aside>
+  <section class="fc-main">
+    {% block fc_content %}{% endblock %}
+  </section>
+</div>
+{% endblock %}

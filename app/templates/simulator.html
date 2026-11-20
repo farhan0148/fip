@@ -19,7 +19,7 @@
     </div>
     <div class="sim-save">
       <button type="button" class="btn btn-secondary" id="save-btn">Save scenario</button>
-      <button type="button" class="btn btn-primary is-unavailable" disabled aria-disabled="true">Review with my FC <span class="pill">Soon</span></button>
+      <a class="btn btn-primary" href="{{ url_for('sharing.new', category='simulator') }}">Review with my FC</a>
     </div>
   </div>
   <p class="save-status" id="save-status" role="status">Not saved yet.</p>

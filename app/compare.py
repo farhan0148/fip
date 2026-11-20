@@ -104,8 +104,9 @@ def citation(clause_id):
             cell = candidate
 
     a, b = request.args.get("a"), request.args.get("b")
+    plan_id = _int_or_none(request.args.get("plan"))
     position = pages.index(view_page)
-    nav = {"a": _int_or_none(a), "b": _int_or_none(b), "cell": cell.id if cell else None}
+    nav = {"a": _int_or_none(a), "b": _int_or_none(b), "cell": cell.id if cell else None, "plan": plan_id}
     return render_template(
         "citation.html",
         clause=clause,
@@ -117,6 +118,7 @@ def citation(clause_id):
         prev_url=url_for("compare.citation", clause_id=clause.id, page=pages[position - 1], **nav) if position > 0 else None,
         next_url=url_for("compare.citation", clause_id=clause.id, page=pages[position + 1], **nav) if position < len(pages) - 1 else None,
         cited_url=url_for("compare.citation", clause_id=clause.id, **nav),
-        back_url=_compare_url(a, b),
+        back_url=url_for("plans.detail", plan_id=plan_id) if plan_id else _compare_url(a, b),
+        back_label="Back to plan" if plan_id else "Back to comparison",
         page_title=f"Source · page {view_page}",
     )

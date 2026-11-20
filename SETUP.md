@@ -106,6 +106,40 @@ Rules live in `app/priorities.py` (one table, each rule has a plain-language rea
 - **Compare** (nav bar or a plan card on the dashboard) compares two of the three sample plans. Citation links open
   `/citations/<clause id>` with the cited line highlighted. All plan names, prices and wording are fictional.
 
+## FC accounts and sharing
+
+Public sign-up only ever creates clients. Create an FC from the command line (the password is prompted and hidden):
+
+```powershell
+.\.venv\Scripts\flask --app wsgi create-fc --email fc@example.com --name "Full Name" --speciality "Family protection" --language English
+```
+It prints the FC's referral code. FCs sign in on the normal login page and land on `/fc`.
+
+`seed-demo` also adds two fictional demo FCs (password `demo-fc-password-1`): `fc.daniel@example.com` (referral code `FC-2048`)
+and `fc.jane@example.com` (`FC-3117`). Never run `seed-demo` against a real deployment.
+
+A client opens **Send to my FC** (dashboard, simulator, comparison or citation page), picks an FC by referral code or random match,
+then ticks what to share. Nothing is shared until **Confirm and share**. `/sharing` lists what is shared and has Revoke buttons.
+The FC portal shows only clients who have an active grant, and only the items they granted.
+
+Apply the new tables with `.\.venv\Scripts\flask --app wsgi db upgrade`, then `seed-demo` for the demo FCs.
+## Plans
+
+`seed-demo` loads six fictional sample plans with invented wording. **Plans** in the nav lists them, with filters by type, and each plan has
+a detail page with an AI summary, budget trade-off, compatibility and a simplified comparison. After pulling this version run
+`flask --app wsgi db upgrade` and `flask --app wsgi seed-demo`.
+
+The plan summary is built from the plan's own clauses only (no client data) and cached for everyone. With `GROQ_API_KEY` and `GROQ_MODEL` set,
+the first view of a plan generates it. To fill the cache ahead of time (and translations):
+
+```powershell
+.\.venv\Scripts\flask --app wsgi generate-summaries                 # all plans, all four languages
+.\.venv\Scripts\flask --app wsgi generate-summaries --language en     # English only
+.\.venv\Scripts\flask --app wsgi generate-summaries --force           # regenerate
+```
+Without a key the page shows a "Standard summary" built from the comparison cells. If a plan keeps showing the standard summary with
+"did not match the policy wording", set `AI_DEBUG=1` in `.env` locally to log which tokens were rejected (never in production).
+Free Groq plans can return HTTP 429 (busy) when many summaries are generated at once; the page then shows the standard summary and tries again on the next view.
 ## Simulator
 
 - **Simulator** (nav bar, or "Simulate a change" on the dashboard) calculates in the browser as you type and sends nothing
