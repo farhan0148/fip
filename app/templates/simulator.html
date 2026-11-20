@@ -11,7 +11,7 @@
 {% endmacro %}
 
 {% block content %}
-<div class="container-wide sim" id="sim-root" data-csrf="{{ csrf_token() }}" data-save-url="{{ url_for('simulator.save') }}">
+<div class="container-wide sim" id="sim-root" data-csrf="{{ csrf_token() }}" data-save-url="{{ url_for('simulator.save') }}" data-explain-url="{{ url_for('ai.explain') }}">
   <div class="sim-head">
     <div>
       <h1 class="page-title">Coverage Needs Simulator</h1>
@@ -136,10 +136,27 @@
     <p class="empty" id="changed-empty">Complete the figures to see what moves your gap.</p>
     <p class="small muted">Other inputs unchanged. This is an estimate from the figures above, to be confirmed with your FC before deciding.</p>
   </section>
+
+  <section class="card explain-card" aria-labelledby="explain-title">
+    <h2 class="card-title" id="explain-title">Explain this change</h2>
+    <p class="small muted" id="explain-note">The calculation above is done by fixed formulas. If you press the button, an AI writes a plain-language explanation of those calculated changes. This sends your scenario figures (amounts and plan names, not your name or email) to an AI provider, Groq. Nothing is sent until you press it.</p>
+    <div class="explain-actions">
+      <button type="button" class="btn btn-secondary" id="explain-btn" disabled aria-describedby="explain-note explain-hint">Explain this change</button>
+      <span class="small muted" id="explain-hint">Enter valid figures and add a life event or plan first.</span>
+    </div>
+    <p class="small" id="explain-status" role="status" aria-live="polite"></p>
+    <div class="explain-result" id="explain-result" hidden aria-live="polite">
+      <span class="chip" id="explain-label"></span>
+      <p class="explain-summary" id="explain-summary"></p>
+      <ul class="explain-bullets" id="explain-bullets"></ul>
+      <p class="small muted" id="explain-reason"></p>
+    </div>
+  </section>
 </div>
 <script type="application/json" id="sim-data">{{ data | tojson }}</script>
 {% endblock %}
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/simulator-core.js') }}"></script>
 <script src="{{ url_for('static', filename='js/simulator.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/simulator-explain.js') }}" defer></script>
 {% endblock %}

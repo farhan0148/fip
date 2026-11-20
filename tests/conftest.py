@@ -1,6 +1,9 @@
 import os
 
 import pytest
+from dotenv import dotenv_values
+from sqlalchemy.engine import make_url
+from sqlalchemy.exc import ArgumentError
 
 from app import create_app
 from app.extensions import db
@@ -8,14 +11,47 @@ from app.extensions import db
 TEST_DATABASE_URL = os.environ.get("TEST_DATABASE_URL")
 
 
+def _database_target(url):
+    """(host, port, database) for a URL, or None if it cannot be parsed."""
+    try:
+        parsed = make_url(url)
+    except (ArgumentError, ValueError):
+        return None
+    return (parsed.host or "localhost", parsed.port or 5432, parsed.database)
+
+
+def pytest_configure(config):
+    """Stop the whole run unless the test database is clearly separate from the real one.
+
+    The test fixtures drop every table. The target database name must end in "_test"
+    and must not be the DATABASE_URL database (from the environment or .env).
+    """
+    if not TEST_DATABASE_URL:
+        pytest.exit(
+            "Refusing to run: TEST_DATABASE_URL is not set. Point it at a database whose name "
+            "ends in _test, for example postgresql+psycopg://postgres@127.0.0.1:5433/insurance_navigator_test.",
+            returncode=4,
+        )
+    target = _database_target(TEST_DATABASE_URL)
+    if target is None or not target[2] or not target[2].endswith("_test"):
+        pytest.exit(
+            "Refusing to run: TEST_DATABASE_URL must name a database ending in _test "
+            "(the tests drop all tables).",
+            returncode=4,
+        )
+    real_url = os.environ.get("DATABASE_URL") or dotenv_values().get("DATABASE_URL")
+    if real_url and _database_target(real_url) == target:
+        pytest.exit("Refusing to run: TEST_DATABASE_URL is the same database as DATABASE_URL.", returncode=4)
+
+
 @pytest.fixture()
 def app():
-    if not TEST_DATABASE_URL:
-        pytest.skip("Set TEST_DATABASE_URL to a PostgreSQL database that can be wiped.")
     app = create_app(
         {"TESTING": True, "SECRET_KEY": "test-secret", "SQLALCHEMY_DATABASE_URI": TEST_DATABASE_URL}
     )
     with app.app_context():
+        # Second line of defence: never wipe anything but the checked test database.
+        assert db.engine.url.database.endswith("_test"), "refusing to drop tables outside a *_test database"
         db.drop_all()
         db.create_all()
         yield app

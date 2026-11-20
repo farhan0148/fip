@@ -37,7 +37,7 @@ Two audiences, two dashboards:
 | C5 | Citation PDF viewer | Clicking a citation opens the source page with the cited line highlighted and its line number, plus the exact AI claim and "Matches: clause X, line Y". |
 | C6 | Comparison table | Two or more policies in columns (Prudential plan, or other insurer by upload or link). Shared rows, auto-detected distinctive rows, four cell states, clause link on every cell, plain-language finding with original-wording toggle, "Flag for my FR to verify" on Unconfirmed cells. |
 | C7 | Scenario-based comparison (preview) | Marked "Future iteration". Pick a life event and see pays out / partly / doesn't pay / unconfirmed per policy. Not part of the main flow. |
-| C8 | Coverage Needs Simulator | Real calculator, not a chat. See [Coverage Needs Simulator in design.md](design.md#4-coverage-needs-simulator-death-cover-only). |
+| C8 | Coverage Needs Simulator | Real calculator, not a chat. The gap is calculated deterministically from the figures; an AI explains the calculated changes on request. See [Coverage Needs Simulator in design.md](design.md#4-coverage-needs-simulator-death-cover-only). |
 | C9 | Buy or consult FC | Client chooses to consult an FC or buy. Buying requires the comprehension quiz before payment. |
 | C10 | Comprehension quiz | Scenario questions built from the chosen policy, feedback linked to the exact clause. Unclear points go to the FC only with consent. |
 | C11 | Payment | Order summary and pay. |
@@ -78,7 +78,12 @@ Two audiences, two dashboards:
 
 ### R4 Simulator
 - WHEN an input, plan or event changes, THE SYSTEM SHALL recalculate need, gap and the chart.
-- THE SYSTEM SHALL list the inputs that changed the gap and the amount each contributed.
+- THE SYSTEM SHALL calculate need, gap and each contribution with fixed formulas and SHALL NOT use an AI model to produce any figure.
+- THE SYSTEM SHALL list the inputs that changed the gap and the amount each contributed (rule-based breakdown).
+- WHEN the client asks for an explanation, THE SYSTEM SHALL recalculate on the server and show an AI-generated plain-language explanation of the calculated changes beside the rule-based breakdown, labelled as AI-generated.
+- THE SYSTEM SHALL send the AI provider only the calculated figures and change labels, and SHALL tell the client that the scenario figures are sent.
+- THE SYSTEM SHALL use only the supplied figures in the explanation and SHALL give no advice or product recommendation.
+- IF the explanation contains a figure that was not supplied, or the AI provider fails, times out or is not configured, THE SYSTEM SHALL show a standard template explanation labelled "Standard explanation".
 - THE SYSTEM SHALL label results as estimates to be confirmed with the FC.
 
 ### R5 Consent and sharing

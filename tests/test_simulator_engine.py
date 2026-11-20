@@ -104,16 +104,3 @@ def test_too_many_events_rejected():
     payload["events"] = [{"type": "new_child", "age": "31", "amount": "1"}] * 13
     clean, errors = simulator.validate(payload, CATALOGUE)
     assert clean is None and "events" in errors
-
-
-def test_no_ai_service_is_used():
-    root = Path(simulator.__file__).parent
-    text = "\n".join(
-        path.read_text(encoding="utf-8").lower()
-        for path in (root / "simulator.py", root / "simulator_routes.py",
-                     root / "static/js/simulator.js", root / "static/js/simulator-core.js",
-                     root / "templates/simulator.html")
-    )
-    text = text.replace("http://www.w3.org/2000/svg", "")  # SVG namespace constant, not a request
-    for word in ("groq", "openai", "anthropic", "gemini", "llm", "http://", "https://"):
-        assert word not in text, word

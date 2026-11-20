@@ -39,6 +39,38 @@ Definitions I chose where the spec is silent:
 - Events apply from their age onwards. Same-age events apply in the order listed.
 - Event effects: Buy a home adds housing debt. New child adds support. Income change adds or removes support (negative lowers it). Pay down mortgage lowers housing debt. A pay-down larger than the housing debt, or an income change that takes support below zero, is an error.
 
+## Checkpoint 4 (built): AI explanation of simulator changes
+
+- The calculation stays deterministic (`app/simulator.py`, `static/js/simulator-core.js`, unchanged). design.md section 4 and requirement R4 no longer say "no chatbot": they now say the AI only explains calculated changes, on request, beside the rule-based "What changed, and why" panel.
+- `POST /api/simulator/explain`: login and onboarding required (JSON 401/403), CSRF header required, per-user rate limit (5 per 60 s, in memory), same payload as save, re-validated and recalculated by Flask, nothing stored.
+- Grounding: only the three gaps plus each change's label, input and signed effect on the gap go to Groq. No name, email, account id, age or raw input.
+- Validation: every number in the reply must be a supplied S$ figure (other currencies, abbreviations, bare numbers, percentages, number words and advice wording are rejected). Any failure, timeout, error or missing key gives the fixed "Standard explanation" template.
+- UI: "Explain this change" button under the panel, on click only, disabled until the inputs are valid and something has changed, with a note that scenario figures are sent to the AI provider (Groq).
+- Settings: `GROQ_API_KEY` and `GROQ_MODEL` in the server `.env` only. There is no default model; pick one from https://console.groq.com/docs/models.
+- Safety: tests refuse to run unless `TEST_DATABASE_URL` names a database ending in `_test` that differs from `DATABASE_URL`. A Node test runs the browser calculator against `tests/simulator_cases.json`. Guards check the calculators contain no AI imports or network calls and that provider code lives only in `app/ai/`.
+
+Open for the AI layer:
+
+- Live Groq call not yet verified (needs the real key and model in `.env`; every test mocks Groq).
+- The validator checks figures and advice wording, not whether the sentence's logic is right (for example "raises" versus "lowers"). The bullets are one per change and quote the supplied signed effect.
+- Rate limit is per server process. Move it to the database or Redis if the app runs several workers.
+- Groq model choice and data-handling terms are a decision for the project (the scenario figures leave the server on each click).
+
+## Checkpoint 4b (built): fix for rejected live AI replies
+
+Symptom: a live Groq reply was always rejected (`invalid_output`), so users only saw the Standard explanation.
+Scenario: gap today S$402,000, PRUActive Term effect -S$500,000, final gap -S$98,000.
+
+- **Diagnosis** (local `AI_DEBUG=1`, live `openai/gpt-oss-20b`): the reply was correct. Rejected tokens were `S$402,000,` and `S$98,000,` (kind `abbreviated_or_malformed`). The number pattern swallowed the comma that ends a clause, so any figure followed by a comma failed the grouping check. The model also wrote "lowers the gap by -S$500,000", a double negative.
+- **Validator** (`app/ai/explain.py`): S$ amounts are compared by magnitude, so `S$98,000`, `-S$98,000`, `S$-98,000`, `S$ 98,000`, `SGD 98,000` and a bare `98,000` are all accepted when 98,000 is a supplied magnitude. Still rejected: unsupplied magnitudes, other currencies, abbreviations (k, m), decimals and bad grouping, percentages, number words, advice wording.
+- **Direction:** in a clause that talks about "the gap", a change described as raising when the calculator lowers it (or the reverse) is rejected. Clauses that use both directions, or do not mention the gap (for example "increases your cover"), are not judged.
+- **Negative gaps:** a negative final gap must be described as cover exceeding need; "gap", "shortfall", "deficit" or "short by" for it is rejected, and "need exceeding cover" for a negative figure is rejected.
+- **Bullets** are now generated from the calculator, and the model writes only the summary (the model's own bullets are ignored). The model input also carries a plain reading of each gap (for example "no gap: cover exceeds need by S$98,000").
+- **Debug switch:** `AI_DEBUG=1` logs rejected tokens and the allowed magnitudes. Off by default and ignored when `APP_ENV=production`.
+- **Live check:** six varied scenarios against the real API are all accepted (one was wrongly rejected by an intermediate version of the negative-gap rule and fixed).
+
+Known limits: the checker judges figures, direction in gap clauses and negative-gap wording. It cannot judge every possible sentence, so an unusual but wrong reply could still pass, and an unusual correct reply could fall back to the standard explanation.
+
 ## Implementation tasks (suggested order)
 
 - [ ] 1. Set up project, design tokens and shared components (button, card, chip, cell state, nav)
@@ -69,6 +101,7 @@ Definitions I chose where the spec is silent:
   - Not built: more than one saved scenario (the Figma "Today / Scenario A / + New scenario" tabs), Critical Illness and Disability modes (shown as "Coming next"), "Review with my FC" (needs consent, task 9), life-event prompts (future development).
   - Open: retire at 55/65 and job break are listed in the spec but their effect on a death-cover need is not defined. They show in the event list as disabled ("not modelled yet") and the server rejects them.
   - Open: existing death cover is typed in. The spec says it is pre-filled from the client's plans, but the app has no record of plans the client already holds.
+  - Done (checkpoint 4): AI "Explain this change" beside the rule-based breakdown, with a standard-template fallback.
   - Open: the Figma mock-up lists three events (home, child, pay down mortgage at 40) next to a S$580,000 "after life events" card. S$580,000 is only reached with home and child, as in design.md, so the pay-down is not part of that figure.
 - [ ] 9. Consent screen and ShareGrant
 - [ ] 10. Buy or consult, comprehension quiz, payment

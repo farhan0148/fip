@@ -412,6 +412,7 @@
     renderErrors(errors);
     renderResults(evaluation.result, errors, evaluation.clean);
     renderEventEffects(evaluation.clean);
+    document.dispatchEvent(new CustomEvent("simulator:updated"));
     if (savedSnapshot !== null) {
       $("save-status").textContent = JSON.stringify(p) === savedSnapshot ? savedLabel : "Unsaved changes.";
     }
@@ -503,6 +504,9 @@
     var last = state.events[state.events.length - 1];
     $("ev-type-" + last.id).focus();
   });
+
+  // Read-only hooks for simulator-explain.js. It never changes the calculation or the panel above.
+  window.SimulatorUI = { payload: payload, result: function () { return lastResult; } };
 
   // ---------- start ----------
   bindFields();

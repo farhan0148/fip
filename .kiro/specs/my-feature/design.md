@@ -66,7 +66,10 @@ Controls:
 Outputs:
 - Gap today, gap after life events, gap with the added plan.
 - Chart of cover vs need over time, with a note when a term plan expires.
-- "What changed, and why": a rule-based breakdown of which input moved the gap and by how much. No chatbot.
+- "What changed, and why": a rule-based breakdown of which input moved the gap and by how much. It is computed by the calculator and always shown.
+- "Explain this change": on request, an AI-generated plain-language explanation of the calculated changes, shown beside the rule-based breakdown (see below). It is not a chatbot: one button, one explanation.
+
+**The calculation is deterministic. The AI only explains it.** The gap, the chart and every contribution come from the formulas above, never from a model. Flask recalculates the scenario on the server and sends the AI provider only the calculated figures (the gaps and each change's label, input and signed effect on the gap). The model is told to use only those figures, to give no advice and no product recommendations, and to invent no numbers. Flask then checks that every S$ figure in the reply was supplied. If the check fails, or the provider errors, times out or is not configured, a fixed template explanation labelled "Standard explanation" is shown instead. AI output is labelled "AI-generated explanation, figures from the simulator calculator". The explanation is generated only when the user presses the button, needs valid inputs, and the page says that the scenario figures are sent to the AI provider. The scenario is not stored by this call.
 
 Worked example used in the design: need S$280k, existing cover S$150k, gap S$130k. After a home (+S$300k debt) and a child (+S$150k support) the gap is S$580k. Adding PRUActive Term (+S$500k) gives S$80k.
 

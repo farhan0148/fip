@@ -357,3 +357,14 @@ code { font-size: 0.9em; background: var(--accent-soft); padding: 1px 6px; borde
 .is-unavailable { cursor: not-allowed; }
 @media (max-width: 1250px) { .sim-grid { grid-template-columns: 1fr 1fr; } .sim-right { grid-column: 1 / -1; } }
 @media (max-width: 760px) { .sim-grid, .stats { grid-template-columns: 1fr; } .changed-row { grid-template-columns: 1fr; gap: 2px; } .sim-head { flex-direction: column; } }
+
+/* ---------- Explain this change ---------- */
+.explain-card { margin-top: 20px; }
+.explain-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+.explain-actions [hidden] { display: none; }
+#explain-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+#explain-status { margin-top: 10px; min-height: 18px; }
+.explain-result { margin-top: 12px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); }
+.explain-result[hidden] { display: none; }
+.explain-summary { margin-top: 10px; font-size: 15px; }
+.explain-bullets { margin: 10px 0 0 18px; padding: 0; list-style: disc; display: grid; gap: 4px; font-size: 14px; }

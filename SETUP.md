@@ -115,6 +115,37 @@ Rules live in `app/priorities.py` (one table, each rule has a plain-language rea
 - The calculation lives in `app/simulator.py` and `app/static/js/simulator-core.js`. Change both together and run
   `pytest` (it checks `tests/simulator_cases.json` against the Python version).
 
+## AI explanation (Groq)
+
+"Explain this change" on the simulator is optional. Without a key it shows a standard (non-AI) explanation.
+
+1. Create a key in the Groq console and pick a model ID from <https://console.groq.com/docs/models>. The app has no default model.
+2. Put both in `.env` (server only; never paste a key into a page, a chat or git):
+
+   ```
+   GROQ_API_KEY=your-key
+   GROQ_MODEL=the-model-id
+   ```
+3. `pip install -r requirements.txt`, restart Flask, open the simulator, enter a scenario with a life event or plan, and press **Explain this change**.
+   A real answer is labelled "AI-generated explanation, figures from the simulator calculator". If it says "Standard explanation", the reason is shown under it.
+
+Only the calculated figures and change labels are sent. The calculator never calls an AI service.
+The model writes a short summary; the per-change bullets always come from the calculator.
+
+If a real reply keeps showing "Standard explanation" with reason `invalid_output`, set `AI_DEBUG=1` in `.env` on your own machine and
+restart. The Flask log then names the rejected tokens and the allowed figures (never the key, prompt or your details). Remove it afterwards,
+and never set it in production.
+
+## Tests
+
+```powershell
+$env:TEST_DATABASE_URL = "postgresql+psycopg://postgres@127.0.0.1:5433/insurance_navigator_test"
+.\.venv\Scripts\python -m pytest -q          # also runs the Node check of the browser calculator
+node --test tests/js                         # the Node check on its own
+```
+`pytest` stops immediately unless `TEST_DATABASE_URL` names a database ending in `_test` that is not `DATABASE_URL`.
+Node 20 or later is required for the calculator check.
+
 ## Notes
 
 - Inter font files in `app/static/fonts/` are under the SIL Open Font License (`LICENSE-Inter.txt`).
