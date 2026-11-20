@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-wide citation-page">
+  <a class="back-link" href="{{ back_url }}">← {{ back_label }}</a>
+  <h1 class="page-title">Source: {{ applies_to | join(", ") }}</h1>
+  <p class="page-sub">{{ doc_label }}. Version: {{ version.version or document.version }}. Page {{ view_page }} of {{ document.page_count }}.</p>
+
+  <div class="citation-grid">
+    <section class="card source-page" aria-label="Source page {{ view_page }}">
+      <div class="pdf-page" data-page="{{ view_page }}">
+        <img class="pdf-image" src="{{ image_url }}" width="{{ (page_size[0] * 2) | int }}" height="{{ (page_size[1] * 2) | int }}"
+             alt="Page {{ view_page }} of the source PDF{% if highlight %}. The cited paragraph is highlighted: {{ paragraph.text[:200] }}{% endif %}">
+        {% if highlight %}
+        <svg class="pdf-overlay" viewBox="0 0 {{ page_size[0] }} {{ page_size[1] }}" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+          <rect class="pdf-highlight" id="cited-paragraph" x="{{ '%.3f' | format(highlight.x) }}" y="{{ '%.3f' | format(highlight.y) }}"
+                width="{{ '%.3f' | format(highlight.w) }}" height="{{ '%.3f' | format(highlight.h) }}"></rect>
+        </svg>
+        {% endif %}
+      </div>
+      <div class="pager">
+        {% if prev_url %}<a class="btn btn-small btn-secondary" href="{{ prev_url }}">← Prev</a>{% else %}<span class="btn btn-small btn-secondary is-unavailable" aria-disabled="true">← Prev</span>{% endif %}
+        {% if next_url %}<a class="btn btn-small btn-secondary" href="{{ next_url }}">Next →</a>{% else %}<span class="btn btn-small btn-secondary is-unavailable" aria-disabled="true">Next →</span>{% endif %}
+        <span class="small muted">Page {{ view_page }} · {{ page_position }} of {{ pages | length }} pages for this wording</span>
+        {% if view_page != paragraph.page %}<a class="small" href="{{ cited_url }}">Back to cited paragraph (page {{ paragraph.page }})</a>{% endif %}
+      </div>
+    </section>
+
+    <aside class="side">
+      <section class="card">
+        <span class="chip chip-info">Cited paragraph</span>
+        <p class="matches">Page {{ paragraph.page }}{% if paragraph.clause_number %}, clause {{ paragraph.clause_number }}{% endif %}{% if paragraph.heading %} ({{ paragraph.heading }}){% endif %}</p>
+        <p class="claim">“{{ paragraph.text }}”</p>
+        <p class="small muted">Wording is shown as published, in its original language ({{ document.language or "en" }}).</p>
+      </section>
+      <section class="card">
+        <h2 class="card-title">Applies to</h2>
+        <ul class="plain-list">
+          {% for name in applies_to %}<li>{{ name }}</li>{% endfor %}
+        </ul>
+        <p class="small muted">This page and the pages next to it only show wording for these plan variants.</p>
+      </section>
+      <section class="card">
+        <h2 class="card-title">Document</h2>
+        <p class="small">{{ doc_label }}<br>Version: {{ version.version or document.version }}<br>SHA-256 checked: {{ version.sha256[:12] }}…</p>
+        <p class="small muted">A dated sample may differ from your issued policy and policy certificate.</p>
+        {% if source_url %}<a class="btn btn-secondary btn-small" href="{{ source_url }}" target="_blank" rel="noopener noreferrer">Open source PDF</a>{% endif %}
+      </section>
+    </aside>
+  </div>
+</div>
+{% endblock %}

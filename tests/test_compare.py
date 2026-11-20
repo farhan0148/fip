@@ -32,7 +32,7 @@ def test_compare_and_citations_locked_until_onboarding_confirmed(browser, seeded
     browser.signup()
     assert browser.get("/compare").location.endswith("/onboarding")
     clause = PolicyClause.query.first()
-    assert browser.get(f"/citations/{clause.id}").location.endswith("/onboarding")
+    assert browser.get(f"/citations/demo/{clause.id}").location.endswith("/onboarding")
 
 
 def test_compare_without_demo_data_shows_empty_state(browser, app):
@@ -142,7 +142,7 @@ def test_citation_link_opens_the_cited_line(user):
     term = plan("PRUActive Term")
     cell = ComparisonCell.query.filter_by(policy_id=term.id, row_key="duration").one()
     page = user.get("/compare").get_data(as_text=True)
-    href = re.search(r'href="(/citations/%d\?[^"]*)"' % cell.clause_id, page).group(1).replace("&amp;", "&")
+    href = re.search(r'href="(/citations/demo/%d\?[^"]*)"' % cell.clause_id, page).group(1).replace("&amp;", "&")
     viewer = user.get(href).get_data(as_text=True)
     assert 'id="cited-line"' in viewer
     cited = re.search(r'<li class="source-line is-cited".*?</li>', viewer, flags=re.S).group(0)
@@ -155,7 +155,7 @@ def test_citation_ignores_a_cell_that_does_not_cite_it(user):
     term = plan("PRUActive Term")
     other_cell = ComparisonCell.query.filter_by(policy_id=term.id, row_key="premium").one()
     duration = ComparisonCell.query.filter_by(policy_id=term.id, row_key="duration").one()
-    page = user.get(f"/citations/{duration.clause_id}?cell={other_cell.id}").get_data(as_text=True)
+    page = user.get(f"/citations/demo/{duration.clause_id}?cell={other_cell.id}").get_data(as_text=True)
     assert other_cell.finding not in page
     assert "Source clause" in page
 
@@ -163,12 +163,12 @@ def test_citation_ignores_a_cell_that_does_not_cite_it(user):
 def test_citation_paging_and_unknown_clause(user):
     term = plan("PRUActive Term")
     clause = PolicyClause.query.filter_by(policy_id=term.id, page=3, line=7).one()
-    other_page = user.get(f"/citations/{clause.id}?page=5").get_data(as_text=True)
+    other_page = user.get(f"/citations/demo/{clause.id}?page=5").get_data(as_text=True)
     assert "does not pay for hospital" in other_page and 'id="cited-line"' not in other_page
     assert "Back to cited line" in other_page
-    assert user.get(f"/citations/{clause.id}?page=999").status_code == 200  # falls back to cited page
-    assert user.get("/citations/999999").status_code == 404
-    assert user.get("/citations/not-a-number").status_code == 404
+    assert user.get(f"/citations/demo/{clause.id}?page=999").status_code == 200  # falls back to cited page
+    assert user.get("/citations/demo/999999").status_code == 404
+    assert user.get("/citations/demo/not-a-number").status_code == 404
 
 
 def test_original_wording_text_is_present_for_toggle(user):
@@ -248,8 +248,8 @@ def test_citation_title_never_shows_none_and_seed_backfills_document_name(user, 
     term.document_ref = None  # a plan seeded by an earlier build
     db.session.commit()
     clause = PolicyClause.query.filter_by(policy_id=term.id, page=3, line=7).one()
-    assert "Source: None" not in user.get(f"/citations/{clause.id}").get_data(as_text=True)
+    assert "Source: None" not in user.get(f"/citations/demo/{clause.id}").get_data(as_text=True)
     assert seeded.test_cli_runner().invoke(args=["seed-demo"]).exit_code == 0
     db.session.refresh(term)
     assert term.document_ref == "PRUActive Term sample policy contract (fictional)"
-    assert "Source: PRUActive Term sample policy contract (fictional)" in user.get(f"/citations/{clause.id}").get_data(as_text=True)
+    assert "Source: PRUActive Term sample policy contract (fictional)" in user.get(f"/citations/demo/{clause.id}").get_data(as_text=True)

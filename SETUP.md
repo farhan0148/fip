@@ -140,6 +140,17 @@ the first view of a plan generates it. To fill the cache ahead of time (and tran
 Without a key the page shows a "Standard summary" built from the comparison cells. If a plan keeps showing the standard summary with
 "did not match the policy wording", set `AI_DEBUG=1` in `.env` locally to log which tokens were rejected (never in production).
 Free Groq plans can return HTTP 429 (busy) when many summaries are generated at once; the page then shows the standard summary and tries again on the next view.
+## Prudential catalogue and contracts
+
+The Plans pages show the Prudential catalogue from `data/prudential/`. After `db upgrade`:
+
+```powershell
+.\.venv\Scripts\flask --app wsgi import-catalogue     # plans and documents (safe to repeat)
+.\.venv\Scripts\flask --app wsgi ingest-contracts     # checks each PDF's SHA-256, then stores its paragraphs
+```
+`ingest-contracts` refuses if a PDF does not match the hash in the catalogue. The citation viewer re-checks the hash on every view.
+It needs PyMuPDF (`pip install -r requirements.txt`).
+
 ## Simulator
 
 - **Simulator** (nav bar, or "Simulate a change" on the dashboard) calculates in the browser as you type and sends nothing

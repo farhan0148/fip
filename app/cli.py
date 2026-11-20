@@ -49,6 +49,44 @@ def _unique_referral_code():
 
 
 def register_commands(app):
+    @app.cli.command("import-catalogue")
+    @click.option("--dir", "directory", type=click.Path(file_okay=False), default=None,
+                  help="Folder with prudential-catalogue.json (default: data/prudential).")
+    def import_catalogue_command(directory):
+        """Import the Prudential catalogue (plans and documents). Safe to run again."""
+        from pathlib import Path
+
+        from . import catalogue_import
+
+        base = Path(directory) if directory else catalogue_import.default_dir(app)
+        try:
+            counts = catalogue_import.import_catalogue(base / "prudential-catalogue.json")
+        except catalogue_import.CatalogueError as error:
+            db.session.rollback()
+            raise click.ClickException(str(error)) from error
+        click.echo(
+            f"Catalogue imported: {counts['plans']} new plans, {counts['documents']} new documents "
+            f"({Policy.query.filter(Policy.slug.isnot(None)).count()} plans in total)."
+        )
+
+    @app.cli.command("ingest-contracts")
+    @click.option("--dir", "directory", type=click.Path(file_okay=False), default=None,
+                  help="Folder with the contract PDFs (default: data/prudential).")
+    def ingest_contracts_command(directory):
+        """Check each sample contract's SHA-256, then store its paragraphs. Safe to run again."""
+        from pathlib import Path
+
+        from . import catalogue_import, contracts
+
+        base = Path(directory) if directory else catalogue_import.default_dir(app)
+        try:
+            results = contracts.ingest_all(base)
+        except contracts.IngestError as error:
+            db.session.rollback()
+            raise click.ClickException(str(error)) from error
+        for doc_id, (count, created) in results.items():
+            click.echo(f"{doc_id}: {count} paragraphs ({'new version' if created else 'already ingested, refreshed'}).")
+
     @app.cli.command("seed-demo")
     @click.option("--reset", is_flag=True, help="Delete existing demo plans first (accounts are kept).")
     def seed_demo(reset):
@@ -66,10 +104,11 @@ def register_commands(app):
         for data in DEMO_POLICIES:
             policy = Policy.query.filter_by(is_demo=True, name=data["name"]).first()
             if policy is None:
-                policy = Policy(is_demo=True, **data)
+                policy = Policy(is_demo=True, is_hidden=True, **data)
                 db.session.add(policy)
                 db.session.flush()
                 added += 1
+            policy.is_hidden = True  # the fictional plans are never listed on the Plans pages
             if not policy.document_ref:  # plans seeded by an earlier build have no document name
                 policy.document_ref = data["document_ref"]
             if policy.death_cover_cents is None:  # plans seeded before the simulator existed

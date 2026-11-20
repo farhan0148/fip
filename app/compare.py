@@ -72,7 +72,7 @@ def flag():
     )
 
 
-@bp.get("/citations/<int:clause_id>")
+@bp.get("/citations/demo/<int:clause_id>")
 @onboarding_complete_required
 def citation(clause_id):
     clause = db.session.get(PolicyClause, clause_id)

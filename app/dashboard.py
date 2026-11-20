@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from flask import Blueprint, g, render_template
 
 from . import demo_fixture, plan_match, services
-from .catalogue import catalogue_policies
+from .catalogue import legacy_demo_policies
 from .extensions import db
 from .security import login_required, onboarding_complete_required
 
@@ -17,7 +17,7 @@ def index():
         g.user.dashboard_first_seen_at = datetime.now(timezone.utc)
         db.session.commit()
 
-    top = plan_match.top_plans(g.user, catalogue_policies())
+    top = plan_match.top_plans(g.user, legacy_demo_policies())
     return render_template(
         "dashboard.html",
         first_visit=first_visit,

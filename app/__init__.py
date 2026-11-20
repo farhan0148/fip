@@ -42,7 +42,7 @@ def create_app(test_config=None):
     db.init_app(app)
     migrate.init_app(app, db)
 
-    from . import ai, auth, compare, dashboard, fc_portal, onboarding, plans, sharing_routes, simulator_routes
+    from . import ai, auth, citation_viewer, compare, dashboard, fc_portal, onboarding, plans, sharing_routes, simulator_routes
     from .cli import register_commands
     from .security import add_security_headers, csrf_token, load_current_user
 
@@ -50,6 +50,7 @@ def create_app(test_config=None):
     app.register_blueprint(onboarding.bp)
     app.register_blueprint(dashboard.bp)
     app.register_blueprint(compare.bp)
+    app.register_blueprint(citation_viewer.bp)
     app.register_blueprint(plans.bp)
     app.register_blueprint(simulator_routes.bp)
     register_commands(app)

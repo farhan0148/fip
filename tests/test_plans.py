@@ -26,7 +26,7 @@ def user(browser, seeded):
 
 
 def plan(name):
-    return Policy.query.filter_by(name=name).one()
+    return Policy.query.filter_by(name=name, is_demo=True).one()
 
 
 def card_names(html):
@@ -87,14 +87,15 @@ def test_new_plans_have_clauses_and_cells_like_the_old_ones(app, seeded):
         assert all(c.clause_id is not None for c in cells if c.state == "not_included")
 
 
-def test_catalogue_helper_returns_only_demo_plans_in_order(app, seeded):
-    from app.catalogue import catalogue_policies
-    db.session.add(Policy(insurer="Real", name="Not a demo", type="Term life", monthly_premium_cents=100,
-                          description="x", is_demo=False))
+def test_catalogue_helpers_split_the_hidden_demo_plans_from_the_catalogue(app, seeded):
+    from app.catalogue import catalogue_policies, legacy_demo_policies
+    db.session.add(Policy(insurer="Real", name="Not a demo", type="Term life", monthly_premium_cents=None,
+                          description="x", is_demo=False, slug="not-a-demo"))
     db.session.commit()
-    assert [p.name for p in catalogue_policies()][:2] == ["PRUActive Term", "PRUShield Premier"]
-    assert "Not a demo" not in [p.name for p in catalogue_policies()]
-
+    demo = [p.name for p in legacy_demo_policies()]
+    assert demo[:2] == ["PRUActive Term", "PRUShield Premier"] and len(demo) == 6
+    assert all(p.is_hidden for p in legacy_demo_policies())
+    assert [p.name for p in catalogue_policies()] == ["Not a demo"]  # demo plans are hidden from the catalogue
 
 def test_only_the_catalogue_helper_supplies_plans_to_the_plans_pages():
     from pathlib import Path
@@ -109,58 +110,6 @@ def test_nav_plans_link_points_to_all_plans(user):
     page = user.get("/dashboard").get_data(as_text=True)
     assert 'href="/plans"' in page
     assert user.get("/plans").status_code == 200
-
-
-def test_plans_lists_all_six_with_the_right_card_content(user):
-    page = user.get("/plans").get_data(as_text=True)
-    assert card_names(page) == ["PRUActive Term", "PRUShield Premier", "PRUCritical Care",
-                                "PRULife Whole", "PRURetire Income", "PRUDisability Guard"]
-    for name, price in (("PRUActive Term", "S$89"), ("PRULife Whole", "S$176"), ("PRUDisability Guard", "S$68")):
-        card = re.search(r'<article class="card plan-card">(?:(?!</article>).)*' + re.escape(name) + r'(?:(?!</article>).)*</article>', page, re.S).group(0)
-        assert price in card and "/mo" in card and "Demo data" in card
-        assert f'href="/plans/{plan(name).id}"' in card and "View plan" in card
-        assert re.search(r'href="/compare\?a=%d&amp;b=\d+"' % plan(name).id, card), name
-
-
-@pytest.mark.parametrize("slug, db_type", list(TYPES.items()))
-def test_each_filter_shows_only_that_type_and_stays_selected(user, slug, db_type):
-    page = user.get(f"/plans?type={slug}").get_data(as_text=True)
-    assert card_names(page) == EXPECTED[db_type]
-    active = re.findall(r'<a class="filter-chip is-active" href="[^"]*" aria-current="true">([^<]+)</a>', page)
-    assert len(active) == 1
-    assert page.count("filter-chip") == 7
-    reload = user.get(f"/plans?type={slug}").get_data(as_text=True)          # same URL, same selection
-    assert card_names(reload) == EXPECTED[db_type]
-
-
-def test_all_filter_and_unknown_filter_show_everything(user):
-    for url in ("/plans", "/plans?type=all", "/plans?type=nonsense", "/plans?type=", "/plans?type=Term%20life"):
-        assert len(card_names(user.get(url).get_data(as_text=True))) == 6, url
-    assert "All</a>" in user.get("/plans?type=all").get_data(as_text=True)
-
-
-def test_filter_links_are_plain_links_so_they_work_without_javascript(user):
-    page = user.get("/plans").get_data(as_text=True)
-    links = re.findall(r'<a class="filter-chip[^"]*" href="([^"]*)"', page)
-    assert "/plans" in links and "/plans?type=term_life" in links and len(links) == 7
-    assert "<script" not in page.split("</header>")[1]                       # no page script needed to filter
-
-
-def test_a_filter_with_no_plans_shows_an_honest_empty_state(app, user):
-    plan("PRUDisability Guard").is_demo = False
-    db.session.commit()
-    page = user.get("/plans?type=disability").get_data(as_text=True)
-    assert card_names(page) == []
-    assert "There are no Disability plans in the sample catalogue yet" in page
-    assert 'href="/plans"' in page and "flask seed-demo" not in page
-
-
-def test_with_no_plans_loaded_the_page_says_how_to_load_them(app):
-    b = Browser(app.test_client())
-    b.signup()
-    b.onboard()
-    page = b.get("/plans").get_data(as_text=True)
-    assert "No plans are loaded" in page and "flask seed-demo" in page
 
 
 def test_plans_pages_need_a_finished_client_account(app, seeded):

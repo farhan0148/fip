@@ -64,7 +64,7 @@ class QuestionnaireAnswer(db.Model):
 
 
 class Policy(db.Model):
-    """Plan catalogue. Only fictional demo rows exist at this checkpoint."""
+    """Plan catalogue: imported Prudential plans (slug set) and the old fictional demo rows (is_demo)."""
 
     __tablename__ = "policies"
 
@@ -72,7 +72,8 @@ class Policy(db.Model):
     insurer = db.Column(db.String(100), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     type = db.Column(db.String(50), nullable=False)
-    monthly_premium_cents = db.Column(db.Integer, nullable=False)
+    # NULL means the premium is not known. Never fill it with a guess.
+    monthly_premium_cents = db.Column(db.Integer)
     description = db.Column(db.String(300), nullable=False)
     document_ref = db.Column(db.String(200))
     # Simulator inputs. death_cover_cents: 0 means no death benefit, NULL means not set.
@@ -80,6 +81,89 @@ class Policy(db.Model):
     death_cover_cents = db.Column(db.BigInteger)
     cover_ends_at_age = db.Column(db.Integer)
     is_demo = db.Column(db.Boolean, nullable=False, default=False, server_default=db.false())
+    # Hidden rows stay in the database (flags and scenarios point at them) but are not in user-facing lists.
+    is_hidden = db.Column(db.Boolean, nullable=False, default=False, server_default=db.false())
+    # Prudential catalogue fields (prudential-catalogue.json). slug is NULL for the demo rows.
+    slug = db.Column(db.String(100), unique=True)
+    kind = db.Column(db.String(30))
+    categories = db.Column(db.JSON)
+    catalogue_status = db.Column(db.String(50))
+    coverage_focus = db.Column(db.Text)
+    contract_status = db.Column(db.String(50))
+    product_url = db.Column(db.String(500))
+    applicable_base_plans = db.Column(db.JSON)  # plan names, as written in the catalogue
+    catalogue_as_of = db.Column(db.Date)
+
+
+class Document(db.Model):
+    """A source document listed in the catalogue (brochure, sample contract, rate-table page...)."""
+
+    __tablename__ = "documents"
+
+    id = db.Column(db.Integer, primary_key=True)
+    doc_id = db.Column(db.String(120), nullable=False, unique=True)
+    type = db.Column(db.String(60), nullable=False)
+    url = db.Column(db.String(600))
+    language = db.Column(db.String(10))
+    version = db.Column(db.String(200))
+    page_count = db.Column(db.Integer)
+    sha256 = db.Column(db.String(64))
+    local_path = db.Column(db.String(300))
+
+
+class PlanDocument(db.Model):
+    __tablename__ = "plan_documents"
+
+    policy_id = db.Column(db.Integer, db.ForeignKey("policies.id", ondelete="CASCADE"), primary_key=True)
+    document_id = db.Column(db.Integer, db.ForeignKey("documents.id", ondelete="CASCADE"), primary_key=True)
+    position = db.Column(db.Integer, nullable=False, default=0)
+
+
+class DocumentVersion(db.Model):
+    """One ingested file: the exact bytes (sha256) that the stored paragraphs came from."""
+
+    __tablename__ = "document_versions"
+
+    id = db.Column(db.Integer, primary_key=True)
+    document_id = db.Column(db.Integer, db.ForeignKey("documents.id", ondelete="CASCADE"), nullable=False)
+    sha256 = db.Column(db.String(64), nullable=False)
+    version = db.Column(db.String(200))
+    page_count = db.Column(db.Integer, nullable=False)
+    ingested_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.func.now())
+
+    document = db.relationship("Document")
+
+    __table_args__ = (UniqueConstraint("document_id", "sha256", name="uq_docversion_document_sha"),)
+
+
+class Paragraph(db.Model):
+    """A paragraph of a source PDF. bbox is in PDF points, origin top-left, pages are 1-based."""
+
+    __tablename__ = "paragraphs"
+
+    id = db.Column(db.Integer, primary_key=True)
+    document_version_id = db.Column(
+        db.Integer, db.ForeignKey("document_versions.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    page = db.Column(db.Integer, nullable=False)
+    ordinal = db.Column(db.Integer, nullable=False)  # position on the page
+    x0 = db.Column(db.Float, nullable=False)
+    y0 = db.Column(db.Float, nullable=False)
+    x1 = db.Column(db.Float, nullable=False)
+    y1 = db.Column(db.Float, nullable=False)
+    text = db.Column(db.Text, nullable=False)  # whitespace-normalised
+    paragraph_sha256 = db.Column(db.String(64), nullable=False)
+    clause_number = db.Column(db.String(30))
+    heading = db.Column(db.String(200))
+    scope = db.Column(db.JSON, nullable=False)  # plan slugs this wording applies to
+
+    document_version = db.relationship("DocumentVersion")
+
+    __table_args__ = (UniqueConstraint("document_version_id", "page", "ordinal", name="uq_paragraph_position"),)
+
+    @property
+    def bbox(self):
+        return (self.x0, self.y0, self.x1, self.y1)
 
 
 CELL_STATES = ("included", "optional_rider", "unconfirmed", "not_included")

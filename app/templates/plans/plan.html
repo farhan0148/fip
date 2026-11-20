@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-wide plan-detail">
+  <a class="back-link" href="{{ url_for('plans.index') }}">← All plans</a>
+  <div class="chips">
+    {% for name in card.categories %}<span class="chip chip-info">{{ name }}</span>{% endfor %}
+    <span class="chip chip-muted">{{ card.kind_label }}</span>
+    {% if card.closed %}<span class="chip chip-warning">Closed to new members</span>{% endif %}
+  </div>
+  <h1 class="page-title">{{ policy.name }}</h1>
+  <p class="page-sub">{{ policy.insurer }}{% if policy.catalogue_as_of %}. Catalogue checked {{ policy.catalogue_as_of.day }} {{ policy.catalogue_as_of.strftime("%B %Y") }}{% endif %}.</p>
+
+  {% if card.closed %}
+  <p class="notice" role="note">This plan is closed to new members. It is shown for information only and cannot be chosen as a new plan.</p>
+  {% endif %}
+
+  <div class="plan-detail-grid">
+    <section class="card">
+      <h2 class="card-title">About this plan</h2>
+      <p>{{ policy.coverage_focus }}</p>
+      <dl class="facts">
+        <dt>Product name</dt><dd>{{ policy.name }}</dd>
+        <dt>Kind</dt><dd>{{ card.kind_label }}</dd>
+        <dt>Categories</dt><dd>{{ card.categories | join(", ") }}</dd>
+        {% if card.needs %}<dt>Rider for</dt><dd>{{ card.needs | join(", ") }}</dd>{% endif %}
+        <dt>Premium</dt>
+        <dd id="premium">
+          {% if premium.known %}{{ premium.cents | money }}/mo
+          {% else %}
+            {% if premium.url_is_rate_table %}Premium varies. See <a href="{{ premium.url }}" target="_blank" rel="noopener noreferrer">Prudential's official rate tables</a>
+            {% elif premium.url %}Premium varies. See Prudential's official rate tables (this plan has no rate-table page in the catalogue; <a href="{{ premium.url }}" target="_blank" rel="noopener noreferrer">official product page</a>)
+            {% else %}Premium varies. See Prudential's official rate tables{% endif %}
+          {% endif %}
+        </dd>
+        <dt>Contract status</dt>
+        <dd class="contract-status {{ 'is-verified' if contract.verified else 'is-unverified' }}" id="contract-status">{{ contract.label }}</dd>
+      </dl>
+      {% if policy.product_url %}<p><a class="btn btn-secondary btn-small" href="{{ policy.product_url }}" target="_blank" rel="noopener noreferrer">Official product page</a></p>{% endif %}
+      {% if policy.kind == "product_family" %}<p class="small muted">This is a product family, not a single plan. Pick one of its variants.</p>{% endif %}
+    </section>
+
+    <section class="card" aria-labelledby="docs-title">
+      <h2 class="card-title" id="docs-title">Documents</h2>
+      {% if documents %}
+      <ul class="doc-list">
+        {% for item in documents %}
+        <li>
+          <strong>{{ item.label }}</strong>
+          <span class="small muted"> · {{ item.doc.language | upper if item.doc.language else "language not stated" }}{% if item.doc.version %} · Version: {{ item.doc.version }}{% endif %}</span><br>
+          {% if item.doc.url %}<a class="small" href="{{ item.doc.url }}" target="_blank" rel="noopener noreferrer">Open official document</a>{% else %}<span class="small muted">No verified link.</span>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="empty">No documents are linked to this plan.</p>
+      {% endif %}
+    </section>
+  </div>
+
+  {% if related %}
+  <section class="card related" aria-labelledby="related-title">
+    <h2 class="card-title" id="related-title">{{ related_title }}</h2>
+    <ul class="plain-list">
+      {% for other in related %}<li><a href="{{ url_for('plans.detail_slug', slug=other.slug) }}">{{ other.name }}</a>{% if other.catalogue_status == "closed_to_new_members" %} <span class="chip chip-warning">Closed to new members</span>{% endif %}</li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <section class="card sources-panel" aria-labelledby="sources-title">
+    <h2 class="card-title" id="sources-title">Sources</h2>
+    {% if sources %}
+      <p class="small muted">Real paragraphs from the sample contract that applies to {{ policy.name }}. Each link opens the PDF page with the paragraph highlighted.</p>
+      <ul class="source-list">
+        {% for item in sources %}
+        <li id="source-{{ item.paragraph.id }}">
+          <p><strong>{{ item.paragraph.heading }}</strong> (clause {{ item.paragraph.clause_number }}, page {{ item.paragraph.page }})</p>
+          <p class="small">“{{ item.excerpt }}”</p>
+          <a class="small" href="{{ item.url }}">Open in the source PDF</a>
+        </li>
+        {% endfor %}
+      </ul>
+      <p class="small muted">A dated sample may differ from your issued policy and policy certificate.</p>
+    {% elif contract.verified %}
+      <p class="small muted">No paragraphs from the sample contract have been picked for this plan yet.</p>
+    {% else %}
+      <p class="no-contract">{{ no_contract_note }}</p>
+    {% endif %}
+  </section>
+
+  <p class="small muted plan-disclaimer">Catalogue details come from Prudential's public pages. A listing does not establish eligibility or availability through every sales channel. This is not advice to buy. Confirm details with your Financial Consultant (FC).</p>
+</div>
+{% endblock %}

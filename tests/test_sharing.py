@@ -222,7 +222,7 @@ def test_entry_points_open_the_consent_screen_with_the_right_item_ticked(world):
         "dashboard": ("/dashboard", "Send to my FC", "profile_answers"),
         "simulator": ("/simulator", "Review with my FC", "simulator"),
         "compare": (f"/compare?a={shield.id}&b={term.id}", "Send flagged items to my FC", "flagged_items"),
-        "citation": (f"/citations/{clause_id}", "Send to my FC", "flagged_items"),
+        "citation": (f"/citations/demo/{clause_id}", "Send to my FC", "flagged_items"),
     }
     for name, (path, label, category) in expected.items():
         page = b.get(path).get_data(as_text=True)

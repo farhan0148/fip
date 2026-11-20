@@ -1,0 +1,1626 @@
+{
+  "as_of": "2026-11-20",
+  "insurer": "Prudential Assurance Company Singapore (Pte) Limited",
+  "market": "Singapore",
+  "scope": "Named entries on the four main consumer catalogue pages, plus specified PRUShield variants and riders. Does not enumerate every distributor-only offer, group product, rider or closed product.",
+  "catalogue_sources": {
+    "health": "https://www.prudential.com.sg/en/products/health/",
+    "life": "https://www.prudential.com.sg/en/products/life/",
+    "wealth": "https://www.prudential.com.sg/en/products/wealth/",
+    "legacy": "https://www.prudential.com.sg/en/products/legacy-planning/"
+  },
+  "contract_index": "https://www.moh.gov.sg/managing-expenses/schemes-and-subsidies/integrated-shield-plans/comparision-of-integrated-shield-plans/",
+  "plans": [
+    {
+      "id": "prushield-and-pruextra",
+      "name": "PRUShield and PRUExtra",
+      "categories": [
+        "health"
+      ],
+      "kind": "product_family",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/en/products/health/medical/prushield/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/health/"
+      ],
+      "coverage_focus": "Hospital and medical insurance, with optional supplementary cover.",
+      "document_ids": [
+        "prushield-and-pruextra-brochure-en",
+        "prushield-premier-plus-standard-apr-2026",
+        "prushield-pruextra-premium-tables"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "base_plan_sample_only"
+    },
+    {
+      "id": "pruhospital-care360",
+      "name": "PRUHospital Care360",
+      "categories": [
+        "health"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/en/products/health/medical/pruhospital-care360/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/health/"
+      ],
+      "coverage_focus": "Hospitalisation cash benefit.",
+      "document_ids": [
+        "pruhospital-care360-brochure-en"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "care-secure-careshield-life-supplement",
+      "name": "Care Secure (CareShield Life Supplement)",
+      "categories": [
+        "health"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/en/products/health/medical/care-secure/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/health/"
+      ],
+      "coverage_focus": "Additional disability support alongside CareShield Life.",
+      "document_ids": [
+        "care-secure-careshield-life-supplement-brochure-en",
+        "care-secure-careshield-life-supplement-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "prupersonal-accident",
+      "name": "PRUPersonal Accident",
+      "categories": [
+        "health"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/en/products/health/accident/prupersonal-accident/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/health/"
+      ],
+      "coverage_focus": "Cover for accidental injury and related benefits.",
+      "document_ids": [
+        "prupersonal-accident-brochure-en",
+        "prupersonal-accident-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruactive-family-care",
+      "name": "PRUActive Family Care",
+      "categories": [
+        "health",
+        "life"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/en/products/life/whole-life/pruactive-family-care/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/health/",
+        "https://www.prudential.com.sg/en/products/life/"
+      ],
+      "coverage_focus": "Whole-life, critical illness and family protection.",
+      "document_ids": [],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruactive-life-v",
+      "name": "PRUActive Life V",
+      "categories": [
+        "health",
+        "life"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/pal-v",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/health/",
+        "https://www.prudential.com.sg/en/products/life/"
+      ],
+      "coverage_focus": "Whole-life protection with critical illness features.",
+      "document_ids": [
+        "pruactive-life-v-brochure-en"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruactive-protect",
+      "name": "PRUActive Protect",
+      "categories": [
+        "health"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/en/products/health/critical-illness/pruactive-protect/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/health/"
+      ],
+      "coverage_focus": "Critical illness protection.",
+      "document_ids": [
+        "pruactive-protect-brochure-en"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruactive-crisis-guard",
+      "name": "PRUActive Crisis Guard",
+      "categories": [
+        "health"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/pacg",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/health/"
+      ],
+      "coverage_focus": "Critical illness protection.",
+      "document_ids": [
+        "pruactive-crisis-guard-brochure-en",
+        "pruactive-crisis-guard-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "prucancer-360",
+      "name": "PRUCancer 360",
+      "categories": [
+        "health"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/en/products/health/critical-illness/prucancer-360/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/health/"
+      ],
+      "coverage_focus": "Cancer protection.",
+      "document_ids": [
+        "prucancer-360-brochure-en",
+        "prucancer-360-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruearly-stage-crisis-cover",
+      "name": "PRUEarly Stage Crisis Cover",
+      "categories": [
+        "health"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/products/health-insurance/critical-illness/pruearly-stage-crisis-cover",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/health/"
+      ],
+      "coverage_focus": "Financial protection for eligible early-stage critical illness.",
+      "document_ids": [
+        "pruearly-stage-crisis-cover-brochure-en",
+        "pruearly-stage-crisis-cover-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "prulady",
+      "name": "PRULady",
+      "categories": [
+        "health"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/en/products/health/critical-illness/prulady/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/health/"
+      ],
+      "coverage_focus": "Protection for specified women’s health conditions.",
+      "document_ids": [
+        "prulady-brochure-en",
+        "prulady-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruman",
+      "name": "PRUMan",
+      "categories": [
+        "health"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/en/products/health/critical-illness/pruman/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/health/"
+      ],
+      "coverage_focus": "Protection for specified men’s health conditions.",
+      "document_ids": [
+        "pruman-brochure-en",
+        "pruman-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruvital-cover",
+      "name": "PRUVital Cover",
+      "categories": [
+        "health",
+        "life"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/en/products/life/term-life/pruvital-cover/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/health/",
+        "https://www.prudential.com.sg/en/products/life/"
+      ],
+      "coverage_focus": "Term cover designed for applicants with specified existing health conditions.",
+      "document_ids": [
+        "pruvital-cover-brochure-en",
+        "pruvital-cover-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "prumum",
+      "name": "PRUMum",
+      "categories": [
+        "health",
+        "life"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/prumum",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/health/",
+        "https://www.prudential.com.sg/en/products/life/"
+      ],
+      "coverage_focus": "Pregnancy and newborn protection.",
+      "document_ids": [
+        "prumum-brochure-en",
+        "prumum-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruactive-linkguard",
+      "name": "PRUActive LinkGuard",
+      "categories": [
+        "life",
+        "wealth"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/en/products/life/whole-life/pruactive-linkguard/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/life/",
+        "https://www.prudential.com.sg/en/products/wealth/"
+      ],
+      "coverage_focus": "Investment-linked whole-life protection.",
+      "document_ids": [
+        "pruactive-linkguard-brochure-en"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "direct-pruprotect-life-ii",
+      "name": "DIRECT - PRUProtect Life II",
+      "categories": [
+        "life"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/ppl2",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/life/"
+      ],
+      "coverage_focus": "Direct-purchase participating whole-life protection.",
+      "document_ids": [
+        "direct-pruprotect-life-ii-brochure-en",
+        "direct-pruprotect-life-ii-product-summary"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "prulife-vantage-achiever-prime-series",
+      "name": "PRULife Vantage Achiever Prime Series",
+      "categories": [
+        "life",
+        "legacy"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/en/products/legacy-planning/prulife-vantage-achiever-prime-series/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/life/",
+        "https://www.prudential.com.sg/en/products/legacy-planning/"
+      ],
+      "coverage_focus": "Whole-life protection for legacy planning.",
+      "document_ids": [
+        "prulife-vantage-achiever-prime-series-brochure-en"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruactive-term",
+      "name": "PRUActive Term",
+      "categories": [
+        "life"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/PAT",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/life/"
+      ],
+      "coverage_focus": "Term life protection with optional supplementary benefits.",
+      "document_ids": [
+        "pruactive-term-brochure-en"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "direct-pruprotect-term",
+      "name": "DIRECT - PRUProtect Term",
+      "categories": [
+        "life"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/products/life-insurance/term-life-insurance/direct-pruprotect-term",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/life/"
+      ],
+      "coverage_focus": "Direct-purchase term life protection.",
+      "document_ids": [
+        "direct-pruprotect-term-brochure-en",
+        "direct-pruprotect-term-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "direct-pruprotect-term-5",
+      "name": "DIRECT - PRUProtect Term 5",
+      "categories": [
+        "life"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/en/products/life/term-life/direct-pruprotect-term-5/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/life/"
+      ],
+      "coverage_focus": "Direct-purchase renewable five-year term protection.",
+      "document_ids": [
+        "direct-pruprotect-term-brochure-en",
+        "direct-pruprotect-term-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "prufirst-promise",
+      "name": "PRUFirst Promise",
+      "categories": [
+        "life"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/prufirstpromise",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/life/"
+      ],
+      "coverage_focus": "Maternity protection bundle.",
+      "document_ids": [
+        "prufirst-promise-brochure-en"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "prufirst-gift-ii",
+      "name": "PRUFirst Gift II",
+      "categories": [
+        "life"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/pfg2",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/life/"
+      ],
+      "coverage_focus": "Maternity protection bundle linked to a child protection plan.",
+      "document_ids": [
+        "prufirst-gift-ii-brochure-en"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "prumortgage",
+      "name": "PRUMortgage",
+      "categories": [
+        "life"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/en/products/life/mortgage/prumortgage/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/life/"
+      ],
+      "coverage_focus": "Life protection linked to an outstanding mortgage.",
+      "document_ids": [
+        "prumortgage-brochure-en",
+        "prumortgage-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruassure-income-usd",
+      "name": "PRUAssure Income (USD)",
+      "categories": [
+        "wealth"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/en/products/wealth/savings/pruassure-income/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/wealth/"
+      ],
+      "coverage_focus": "USD income-oriented insurance plan.",
+      "document_ids": [
+        "pruassure-income-usd-brochure-en",
+        "pruassure-income-usd-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruwealth-income-ii-usd",
+      "name": "PRUWealth Income II (USD)",
+      "categories": [
+        "wealth"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/en/products/wealth/savings/pruwealth-income-ii-usd/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/wealth/"
+      ],
+      "coverage_focus": "USD insurance savings plan designed to provide income.",
+      "document_ids": [
+        "pruwealth-income-ii-usd-brochure-en",
+        "pruwealth-income-ii-usd-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruapex-multigen-wealth",
+      "name": "PRUApex MultiGen Wealth",
+      "categories": [
+        "wealth",
+        "legacy"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/products/wealth-accumulation/savings/pruapex-multigen-wealth",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/wealth/",
+        "https://www.prudential.com.sg/en/products/legacy-planning/"
+      ],
+      "coverage_focus": "Multigenerational wealth and legacy planning.",
+      "document_ids": [
+        "pruapex-multigen-wealth-brochure-en",
+        "pruapex-multigen-wealth-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruindex-lifetime-income",
+      "name": "PRUIndex Lifetime Income",
+      "categories": [
+        "wealth"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/products/wealth-accumulation/savings/pruindex-lifetime-income",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/wealth/"
+      ],
+      "coverage_focus": "Index-linked income and savings.",
+      "document_ids": [
+        "pruindex-lifetime-income-brochure-en",
+        "pruindex-lifetime-income-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruindex-income-boost",
+      "name": "PRUIndex Income Boost",
+      "categories": [
+        "wealth"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/en/products/wealth/savings/pruindex-incomeboost/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/wealth/"
+      ],
+      "coverage_focus": "Index-linked participating endowment.",
+      "document_ids": [
+        "pruindex-income-boost-brochure-en",
+        "pruindex-income-boost-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruwealth-income",
+      "name": "PRUWealth Income",
+      "categories": [
+        "wealth"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/en/products/wealth/savings/pruwealth-income/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/wealth/"
+      ],
+      "coverage_focus": "Income-oriented insurance savings.",
+      "document_ids": [
+        "pruwealth-income-brochure-en",
+        "pruwealth-income-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruwealth-plus-sgd",
+      "name": "PRUWealth Plus (SGD)",
+      "categories": [
+        "wealth"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/products/wealth-accumulation/savings/pruwealth-plus-sgd",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/wealth/"
+      ],
+      "coverage_focus": "SGD insurance savings.",
+      "document_ids": [
+        "pruwealth-plus-sgd-brochure-en",
+        "pruwealth-plus-sgd-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruactive-saver-iii",
+      "name": "PRUActive Saver III",
+      "categories": [
+        "wealth"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/pruactivesaveriii",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/wealth/"
+      ],
+      "coverage_focus": "Savings for planned milestones.",
+      "document_ids": [
+        "pruactive-saver-iii-brochure-en",
+        "pruactive-saver-iii-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruactive-cash",
+      "name": "PRUActive Cash",
+      "categories": [
+        "wealth"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/en/products/wealth/savings/pruactive-cash/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/wealth/"
+      ],
+      "coverage_focus": "Insurance savings with annual cash benefits.",
+      "document_ids": [
+        "pruactive-cash-brochure-zh",
+        "pruactive-cash-brochure-en"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruwealth-usd",
+      "name": "PRUWealth (USD)",
+      "categories": [
+        "wealth"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/products/wealth-accumulation/savings/pruwealth-usd",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/wealth/"
+      ],
+      "coverage_focus": "USD insurance savings.",
+      "document_ids": [
+        "pruwealth-usd-brochure-en",
+        "pruwealth-usd-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "prulifetime-income-plus",
+      "name": "PRULifetime Income Plus",
+      "categories": [
+        "wealth"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/products/wealth-accumulation/savings/prulifetime-income-plus/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/wealth/"
+      ],
+      "coverage_focus": "Insurance savings designed to provide long-term income.",
+      "document_ids": [
+        "prulifetime-income-plus-brochure-en",
+        "prulifetime-income-plus-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruactive-retirement-ii",
+      "name": "PRUActive Retirement II",
+      "categories": [
+        "wealth"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/pruactiveretirement",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/wealth/"
+      ],
+      "coverage_focus": "Retirement income planning.",
+      "document_ids": [
+        "pruactive-retirement-ii-brochure-en",
+        "pruactive-retirement-ii-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruvantage-wealth-iii-sgd",
+      "name": "PRUVantage Wealth III (SGD)",
+      "categories": [
+        "wealth"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": null,
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/wealth/"
+      ],
+      "coverage_focus": "SGD investment-linked insurance.",
+      "document_ids": [
+        "pruvantage-wealth-iii-sgd-brochure-en"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruvantage-prosper",
+      "name": "PRUVantage Prosper",
+      "categories": [
+        "wealth"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/products/wealth-accumulation/investments/pruvantage-prosper",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/wealth/"
+      ],
+      "coverage_focus": "Investment-linked insurance.",
+      "document_ids": [
+        "pruvantage-prosper-brochure-en",
+        "pruvantage-prosper-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruvantage-wealth-ii-usd",
+      "name": "PRUVantage Wealth II (USD)",
+      "categories": [
+        "wealth"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/en/products/wealth/investments/pruvantage-wealth-ii/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/wealth/"
+      ],
+      "coverage_focus": "USD investment-linked insurance.",
+      "document_ids": [
+        "pruvantage-wealth-ii-usd-brochure-zh",
+        "pruvantage-wealth-ii-usd-brochure-en"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruvantage-assure-series",
+      "name": "PRUVantage Assure Series",
+      "categories": [
+        "wealth"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/products/wealth-accumulation/investments/pruvantage-assure-series",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/wealth/"
+      ],
+      "coverage_focus": "Investment-linked insurance series.",
+      "document_ids": [
+        "pruvantage-assure-series-brochure-en"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "prulink-investgrowth",
+      "name": "PRULink InvestGrowth",
+      "categories": [
+        "wealth"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/en/products/wealth/investments/prulink-investgrowth/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/wealth/"
+      ],
+      "coverage_focus": "Investment-linked insurance.",
+      "document_ids": [
+        "prulink-investgrowth-brochure-en",
+        "prulink-investgrowth-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruapex-legacy-index-ii",
+      "name": "PRUApex Legacy Index II",
+      "categories": [
+        "legacy"
+      ],
+      "kind": "catalogue_entry",
+      "catalogue_status": "listed_in_consumer_catalogue",
+      "product_url": "https://www.prudential.com.sg/en/products/legacy-planning/pruapex-legacy-index-ii/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/legacy-planning/"
+      ],
+      "coverage_focus": "Indexed universal life for legacy planning.",
+      "document_ids": [
+        "pruapex-legacy-index-ii-brochure-en",
+        "pruapex-legacy-index-ii-brochure-zh"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "prushield-premier",
+      "name": "PRUShield Premier",
+      "categories": [
+        "health"
+      ],
+      "kind": "base_plan_variant",
+      "catalogue_status": "listed_in_moh_comparison",
+      "product_url": "https://www.prudential.com.sg/en/products/health/medical/prushield/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/health/"
+      ],
+      "coverage_focus": "Private hospital level of hospital cover.",
+      "document_ids": [
+        "prushield-premier-plus-standard-apr-2026",
+        "prushield-and-pruextra-brochure-en",
+        "prushield-pruextra-premium-tables"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_sample_contract_linked"
+    },
+    {
+      "id": "prushield-plus",
+      "name": "PRUShield Plus",
+      "categories": [
+        "health"
+      ],
+      "kind": "base_plan_variant",
+      "catalogue_status": "listed_in_moh_comparison",
+      "product_url": "https://www.prudential.com.sg/en/products/health/medical/prushield/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/health/"
+      ],
+      "coverage_focus": "Public hospital Class A level of hospital cover.",
+      "document_ids": [
+        "prushield-premier-plus-standard-apr-2026",
+        "prushield-and-pruextra-brochure-en",
+        "prushield-pruextra-premium-tables"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_sample_contract_linked"
+    },
+    {
+      "id": "prushield-standard-plan",
+      "name": "PRUShield Standard Plan",
+      "categories": [
+        "health"
+      ],
+      "kind": "base_plan_variant",
+      "catalogue_status": "listed_in_moh_comparison",
+      "product_url": "https://www.prudential.com.sg/en/products/health/medical/prushield/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/health/"
+      ],
+      "coverage_focus": "Standard Class B1 level of hospital cover.",
+      "document_ids": [
+        "prushield-premier-plus-standard-apr-2026",
+        "prushield-and-pruextra-brochure-en",
+        "prushield-pruextra-premium-tables"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_sample_contract_linked"
+    },
+    {
+      "id": "pruextra-premier-care",
+      "name": "PRUExtra Premier Care",
+      "categories": [
+        "health"
+      ],
+      "kind": "rider",
+      "catalogue_status": "listed_in_prudential_product_page",
+      "product_url": "https://www.prudential.com.sg/en/products/health/medical/prushield/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/health/"
+      ],
+      "coverage_focus": "Optional supplementary cover for eligible costs under the associated base plan.",
+      "document_ids": [
+        "prushield-and-pruextra-brochure-en",
+        "prushield-pruextra-premium-tables"
+      ],
+      "applicable_base_plans": [
+        "PRUShield Premier"
+      ],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruextra-preferred-care",
+      "name": "PRUExtra Preferred Care",
+      "categories": [
+        "health"
+      ],
+      "kind": "rider",
+      "catalogue_status": "listed_in_prudential_product_page",
+      "product_url": "https://www.prudential.com.sg/en/products/health/medical/prushield/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/health/"
+      ],
+      "coverage_focus": "Optional supplementary cover for eligible costs under the associated base plan.",
+      "document_ids": [
+        "prushield-and-pruextra-brochure-en",
+        "prushield-pruextra-premium-tables"
+      ],
+      "applicable_base_plans": [
+        "PRUShield Premier"
+      ],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "pruextra-plus-care",
+      "name": "PRUExtra Plus Care",
+      "categories": [
+        "health"
+      ],
+      "kind": "rider",
+      "catalogue_status": "listed_in_prudential_product_page",
+      "product_url": "https://www.prudential.com.sg/en/products/health/medical/prushield/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/health/"
+      ],
+      "coverage_focus": "Optional supplementary cover for eligible costs under the associated base plan.",
+      "document_ids": [
+        "prushield-and-pruextra-brochure-en",
+        "prushield-pruextra-premium-tables"
+      ],
+      "applicable_base_plans": [
+        "PRUShield Plus"
+      ],
+      "contract_status": "public_contract_not_verified"
+    },
+    {
+      "id": "prushield-a",
+      "name": "PRUShield A",
+      "categories": [
+        "health"
+      ],
+      "kind": "legacy_plan_variant",
+      "catalogue_status": "closed_to_new_members",
+      "product_url": "https://www.prudential.com.sg/en/products/health/medical/prushield/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/health/"
+      ],
+      "coverage_focus": "Legacy Integrated Shield Plan with sample wording available.",
+      "document_ids": [
+        "prushield-a-b-apr-2026"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_sample_contract_linked"
+    },
+    {
+      "id": "prushield-b",
+      "name": "PRUShield B",
+      "categories": [
+        "health"
+      ],
+      "kind": "legacy_plan_variant",
+      "catalogue_status": "closed_to_new_members",
+      "product_url": "https://www.prudential.com.sg/en/products/health/medical/prushield/",
+      "category_urls": [
+        "https://www.prudential.com.sg/en/products/health/"
+      ],
+      "coverage_focus": "Legacy Integrated Shield Plan with sample wording available.",
+      "document_ids": [
+        "prushield-a-b-apr-2026"
+      ],
+      "applicable_base_plans": [],
+      "contract_status": "public_sample_contract_linked"
+    }
+  ],
+  "documents": [
+    {
+      "id": "prushield-premier-plus-standard-apr-2026",
+      "type": "regulator_published_sample_contract",
+      "url": "https://isomer-user-content.by.gov.sg/3/a3986bc4-5532-41fb-bcfa-2c4434492b73/PRUShield%20V2%20-%20Apr2026.pdf",
+      "language": "en",
+      "local_path": "contracts/prushield-premier-plus-standard-apr-2026.pdf",
+      "version": "April 2026; PRUShield Version 2 2026",
+      "page_count": 59,
+      "sha256": "867a7602b8ca64618cf337b91a0ac2dbcd795fff2075369220bb564f7a2f133e"
+    },
+    {
+      "id": "prushield-a-b-apr-2026",
+      "type": "regulator_published_sample_contract",
+      "url": "https://isomer-user-content.by.gov.sg/3/0b342444-353d-4d7d-b85a-6a6f37ec1226/PRUShield%20A%20and%20B%20Policy%20Document%20-%20Apr2026%20Final%20%28clean%29.pdf",
+      "language": "en",
+      "local_path": "contracts/prushield-a-b-apr-2026.pdf",
+      "version": "April 2026; legacy plans A and B",
+      "page_count": 21,
+      "sha256": "350354dcf41bb60a597a1687e4e71af462392c8890c6d9298371bd485d26b2f0"
+    },
+    {
+      "id": "direct-pruprotect-life-ii-product-summary",
+      "type": "product_summary",
+      "url": "https://www.comparefirst.sg/wap/prodSummaryPdf/199002477Z/PRUProtect_Life_II_CC_Product_Summary.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "prushield-pruextra-premium-tables",
+      "type": "official_reference_page",
+      "url": "https://www.prudential.com.sg/prudential-shield-premium-rate-tables",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "prushield-and-pruextra-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/prushield/prushield-eBrochure-english.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruhospital-care360-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/phc360/PRUHospital-Care360_Brochure-EN.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruactive-life-v-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruactive-life-v/PRUActive-Life-V-Brochure-EN.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruactive-protect-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruactive-protect/PRUActive-Protect-Brochure-en.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruactive-linkguard-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/prudential/pdf/ebrochures/pruactive-linkguard/PRUActive-LinkGuard-eBrochure.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "prulife-vantage-achiever-prime-series-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruvantage-achiever-prime-series/PRULife_Vantage_Achiever_Prime_Series_Brochure_EN.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "prufirst-promise-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/prufirst-promise-life-protection/prufirst-promise_ebrochure_english.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruvantage-wealth-iii-sgd-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruvantage-wealth-iii/pruvantage-wealth-iii-sgd-brochure-en.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "care-secure-careshield-life-supplement-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/caresecure/Prudential_Income_Care_Secure_-Product_Brochure-Eng.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "care-secure-careshield-life-supplement-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/caresecure/Income_Prudential_Care_Secure_-Product_Brochure-CN.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "prupersonal-accident-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/prupersonal-accident/prupersonal-accident-eBrochure-english.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "prupersonal-accident-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/prupersonal-accident/prupersonal-accident-eBrochure-chinese.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruactive-crisis-guard-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruactive-crisis-guard/PRUActive-Crisis-Guard-Brochure-ENG.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruactive-crisis-guard-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruactive-crisis-guard/PRUActive-Crisis-Guard-Brochure-CHN.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "prucancer-360-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/prucancer-360/PRUCancer360-Brochures-EN.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "prucancer-360-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/prucancer-360/PRUCancer360-Brochures-CHN.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruearly-stage-crisis-cover-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruearly-stage-crisis/PRUEarly-Stage-Crisis-eBrochure-ENG-Final.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruearly-stage-crisis-cover-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruearly-stage-crisis/PRUEarly-Stage-Crisis-eBrochure-CHN-Final.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "prulady-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/prulady/prulady-eBrochure-EN.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "prulady-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/prulady/prulady-eBrochure-CH.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruman-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruman/pruman-eBrochure-EN.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruman-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruman/pruman-eBrochure-CH.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruvital-cover-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruvital-cover/PRUVital-Cover-eBrochure-ENG-Final.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruvital-cover-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruvital-cover/PRUVital-Cover-eBrochure-CHN-Final.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "prumum-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/prumum/prumum_eBrochure_english.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "prumum-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/prumum/prumum_eBrochure_chinese.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "direct-pruprotect-term-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/prudential/pdf/ebrochures/pruprotect_term_and_pruprotect_term_5_eBrochure.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "direct-pruprotect-term-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/prudential/pdf/ebrochures/pruprotect_term_and_pruprotect_term_5_eBrochure_CH.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "prumortgage-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/prumortgage/prumortgage-eBrochure-english.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "prumortgage-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/prumortgage/prumortgage-eBrochure-chinese.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruassure-income-usd-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruassure-income/pruassure-income-unbundled-usd-brochure-en.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruassure-income-usd-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruassure-income/pruassure-income-unbundled-usd-brochure-ch.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruwealth-income-ii-usd-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruwealth-income-ii-usd/pruwealth-income-ii-usd-ebrochure-eng.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruwealth-income-ii-usd-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruwealth-income-ii-usd/pruwealth-income-ii-usd-ebrochure-chn.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruapex-multigen-wealth-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruapex-multigen-wealth/pruapex-multigen-wealth-brochure-en.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruapex-multigen-wealth-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruapex-multigen-wealth/pruapex-multigen-wealth-brochure-chn.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruindex-lifetime-income-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruindex-lifetime-income/pruindex-lifetime-income_brochure_en.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruindex-lifetime-income-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruindex-lifetime-income/pruindex-lifetime-income_brochure_chn.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruindex-income-boost-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruindex-income-boost/PRUIndex-Income-Boost_Brochure_EN.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruindex-income-boost-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruindex-income-boost/PRUIndex-Income-Boost_Brochure_CHN.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruwealth-income-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruwealth-income/pruwealth-income-ebrochure-eng.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruwealth-income-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruwealth-income/pruwealth-income-ebrochure-chn.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruwealth-plus-sgd-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruwealth-plus-sgd/pruwealth-plus-sgd-ebrochure-eng.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruwealth-plus-sgd-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruwealth-plus-sgd/pruwealth-plus-sgd-ebrochure-chn.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruactive-saver-iii-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruactive-saver-iii/PRUActive_20Saver_20III_20SGD_ENG.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruactive-saver-iii-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruactive-saver-iii/PRUActive_20Saver_20III_20SGD_CHN.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruactive-cash-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruactive-cash/PRUActive-Cash-Brochure_CN.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruwealth-usd-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruwealth-usd/pruwealth_usd_ebrochure_english.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruwealth-usd-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruwealth-usd/pruwealth_usd_ebrochure_chinese.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "prulifetime-income-plus-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/prulifetime-income-plus/prulifetime-income-plus-english.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "prulifetime-income-plus-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/prulifetime-income-plus/prulifetime-income-plus-chinese.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruactive-retirement-ii-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruactive-retirement-ii/PRUActive%20Retirement%20II_eBrochure_ENG_AD.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruactive-retirement-ii-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruactive-retirement-ii/PRUActive-Retirement-II_eBrochure_CHI.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruvantage-prosper-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruvantage-prosper/PRUVantage_20Prosper_Brochure_EN.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruvantage-prosper-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruvantage-prosper/PRUVantage_20Prosper_Brochure_CH.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruvantage-wealth-ii-usd-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruvantage-wealth-ii/PRUVantage-Wealth-II-Brochure-CN.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruvantage-assure-series-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruvantage-assure-series/pruvantage-assure-series-brochure-en.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "prulink-investgrowth-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/prulinkinvestgrowth/PRULink-InvestGrowth_Brochure.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "prulink-investgrowth-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/prulinkinvestgrowth/PRULink-InvestGrowth_Brochure_CH.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruapex-legacy-index-ii-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruapex-legacy-index/pruapex-legacy-index-ii-brochure-en.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruapex-legacy-index-ii-brochure-zh",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruapex-legacy-index/pruapex-legacy-index-ii-brochure-chn.pdf",
+      "language": "zh",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruactive-term-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruactive-term/pruactive_term_eBrochure_english.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "prufirst-gift-ii-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pfg2/prufirst-gift-ii-brochure-en.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruvantage-wealth-ii-usd-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/-/media/project/prudential/pdf/ebrochures/pruvantage-wealth-ii/pruvantage-wealth-ii-brochure-en.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "direct-pruprotect-life-ii-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/-/media/project/prudential/pdf/ebrochures/direct-pruprotect-life-ii/pruprotectlifeii_enbrochure_ad.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    },
+    {
+      "id": "pruactive-cash-brochure-en",
+      "type": "brochure",
+      "url": "https://www.prudential.com.sg/content/dam/prudential-aem-lbu/pacs/en/project/prudential/pdf/ebrochures/pruactive-cash/PRUActive-Cash-Brochure_AD.pdf",
+      "language": "en",
+      "local_path": null,
+      "version": null
+    }
+  ],
+  "citation_examples": [
+    {
+      "id": "prushield-p4-example",
+      "document_id": "prushield-premier-plus-standard-apr-2026",
+      "pdf_page": 4,
+      "scope": "PRUShield Premier and PRUShield Plus; paragraph relates only to the preceding benefits on the page.",
+      "example_claim": "The cited benefits are subject to the deductible, co-insurance and pro-ration in the Benefits Schedule.",
+      "page_size_points": [
+        612.0,
+        792.0
+      ],
+      "paragraph_bbox_points": [
+        141.121,
+        500.968,
+        520.491,
+        520.2
+      ],
+      "paragraph_sha256": "146922f3c0418e6aa3abe7c81aa6e294466f07afe0b5e3d380084ed4bd5d0be9"
+    },
+    {
+      "id": "prushield-p30-example",
+      "document_id": "prushield-premier-plus-standard-apr-2026",
+      "pdf_page": 30,
+      "scope": "PRUShield Premier and PRUShield Plus",
+      "example_claim": "Co-insurance is payable after the deductible, with an exception for Final Expense Benefits in this wording.",
+      "page_size_points": [
+        612.0,
+        792.0
+      ],
+      "paragraph_bbox_points": [
+        141.121,
+        572.127,
+        518.438,
+        601.199
+      ],
+      "paragraph_sha256": "09f9b45e11bc41f923a5f2ad1c855d8e7558f5ecdab1900db02aa70d06ce8205"
+    },
+    {
+      "id": "prushield-p55-example",
+      "document_id": "prushield-premier-plus-standard-apr-2026",
+      "pdf_page": 55,
+      "scope": "PRUShield Standard Plan",
+      "example_claim": "Co-insurance is payable after the deductible, at percentages stated in the Benefits Schedule.",
+      "page_size_points": [
+        612.0,
+        792.0
+      ],
+      "paragraph_bbox_points": [
+        141.121,
+        615.448,
+        518.438,
+        644.397
+      ],
+      "paragraph_sha256": "5907fce70f23ee4943048c41bc528a54d7dc08b079088fcdea69c11a9cb831d0"
+    }
+  ]
+}

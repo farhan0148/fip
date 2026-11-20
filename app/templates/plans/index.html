@@ -2,13 +2,19 @@
 {% block content %}
 <div class="container-wide">
   <h1 class="page-title">All plans</h1>
-  <p class="page-sub">Fictional sample plans with invented wording and prices. Nothing here is advice to buy.</p>
+  <p class="page-sub">Prudential Singapore plans from the public catalogue. A listing is not an offer and does not mean you are eligible. This is not advice to buy.</p>
 
-  <nav class="filters" aria-label="Filter plans by type">
-    {% for slug, label, _type in filters %}
-      <a class="filter-chip{% if slug == selected %} is-active{% endif %}" href="{{ url_for('plans.index', type=slug) if slug != 'all' else url_for('plans.index') }}"{% if slug == selected %} aria-current="true"{% endif %}>{{ label }}</a>
+  <nav class="filters" aria-label="Filter plans by category">
+    {% for slug, label in category_filters %}
+      <a class="filter-chip{% if slug == category %} is-active{% endif %}" href="{{ url_for('plans.index', category=slug if slug != 'all' else None, kind=kind if kind != 'all' else None) }}"{% if slug == category %} aria-current="true"{% endif %}>{{ label }}</a>
     {% endfor %}
   </nav>
+  <nav class="filters filters-tight" aria-label="Filter plans by kind">
+    {% for slug, label, _kind in kind_filters %}
+      <a class="filter-chip{% if slug == kind %} is-active{% endif %}" href="{{ url_for('plans.index', category=category if category != 'all' else None, kind=slug if slug != 'all' else None) }}"{% if slug == kind %} aria-current="true"{% endif %}>{{ label }}</a>
+    {% endfor %}
+  </nav>
+  {% if kind != 'closed' %}<p class="small muted">Plans closed to new members are listed under “Closed to new members”.</p>{% endif %}
 
   {% if cards %}
   <div class="plan-grid plan-grid-wide">
@@ -16,23 +22,45 @@
     {% set plan = card.policy %}
     <article class="card plan-card">
       <div class="chips">
-        <span class="chip chip-info">{{ plan.type }}</span>
-        <span class="chip chip-muted">Demo data</span>
+        {% for name in card.categories %}<span class="chip chip-info">{{ name }}</span>{% endfor %}
+        <span class="chip chip-muted">{{ card.kind_label }}</span>
+        {% if card.closed %}<span class="chip chip-warning">Closed to new members</span>{% endif %}
       </div>
       <h2 class="plan-name">{{ plan.name }}</h2>
-      <p class="muted small">{{ plan.description }}</p>
-      <p class="price">{{ plan.monthly_premium_cents | money }}<span class="muted small"> /mo</span></p>
+      <p class="muted small">{{ plan.coverage_focus }}</p>
+      {% if card.needs %}<p class="small">Needs base plan: {{ card.needs | join(", ") }}</p>{% endif %}
+      <p class="small contract-status {{ 'is-verified' if card.contract.verified else 'is-unverified' }}">{{ card.contract.label }}</p>
       <div class="plan-actions">
-        <a class="btn btn-primary" href="{{ url_for('plans.detail', plan_id=plan.id) }}">View plan</a>
-        <a class="btn btn-secondary" href="{{ card.compare_url }}" aria-label="Compare {{ plan.name }} with another plan">Compare</a>
+        <a class="btn btn-primary" href="{{ url_for('plans.detail_slug', slug=plan.slug) }}" aria-label="View {{ plan.name }}">View plan</a>
       </div>
     </article>
     {% endfor %}
   </div>
   {% elif total == 0 %}
-  <p class="empty">No plans are loaded. Load the sample plans with <code>flask seed-demo</code>.</p>
+  <p class="empty">No plans are loaded. Load the Prudential catalogue with <code>flask import-catalogue</code>.</p>
   {% else %}
-  <p class="empty">There are no {{ selected_label }} plans in the sample catalogue yet. <a href="{{ url_for('plans.index') }}">Show all plans</a>.</p>
+  <p class="empty">No plans match these filters. <a href="{{ url_for('plans.index') }}">Show all plans</a>.</p>
+  {% endif %}
+
+  {% if demo_cards %}
+  <section class="demo-plans" aria-labelledby="demo-plans-title">
+    <h2 class="section-title" id="demo-plans-title">Sample plans with AI summary and Compare</h2>
+    <p class="small muted">Fictional demo plans with invented wording and prices. The AI summary, translations, Read Aloud and side-by-side Compare work on these while the real Prudential plans are being connected.</p>
+    <div class="plan-grid plan-grid-wide">
+      {% for card in demo_cards %}
+      <article class="card plan-card">
+        <div class="chips"><span class="chip chip-info">{{ card.policy.type }}</span><span class="chip chip-muted">Demo data</span></div>
+        <h3 class="plan-name">{{ card.policy.name }}</h3>
+        <p class="muted small">{{ card.policy.description }}</p>
+        <p class="price">{{ card.policy.monthly_premium_cents | money }}<span class="muted small"> /mo</span></p>
+        <div class="plan-actions">
+          <a class="btn btn-primary" href="{{ url_for('plans.detail', plan_id=card.policy.id) }}">View plan</a>
+          <a class="btn btn-secondary" href="{{ card.compare_url }}" aria-label="Compare {{ card.policy.name }} with another plan">Compare</a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
   {% endif %}
 </div>
 {% endblock %}

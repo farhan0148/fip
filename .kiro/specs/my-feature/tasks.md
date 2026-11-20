@@ -113,6 +113,26 @@ Decisions I made where the spec was silent:
 
 Remaining (not built): real policy document ingestion (the catalogue is still the fictional sample plans), other insurers, "My Plans" (plans the client already holds), a full multilingual review of the translations, "Get this plan" and the purchase flow (task 10), a summary regeneration schedule or admin view.
 
+## Checkpoint 7 (built): Prudential catalogue, contract ingestion and PDF citation viewer
+
+- **Source pack:** `data/prudential/` holds `prudential-catalogue.json`, the two CSVs, START-HERE.md and the two MOH sample contracts (committed).
+- **`flask import-catalogue`** (idempotent): 49 plans and 70 documents with ids, types, versions, URLs, hashes and the catalogue date kept as given. `Policy.monthly_premium_cents` is now nullable; catalogue plans have no premium and the pages say "Premium varies. See Prudential's official rate tables" (linked to the rate-table document when the plan has one, otherwise to the plan's official product page). No premium is ever invented.
+- **Selector rules** (`catalogue.selectable_policies`): product families and closed plans are never selectable, riders only with one of their applicable base plans. Closed plans stay viewable and are listed under "Closed to new members", not under "All kinds".
+- **Contract status** on every card and plan page. "Contract wording verified (sample, April 2026)" is shown only when the plan is linked to a sample contract that was ingested with a matching hash. Everything else says "Contract wording not verified".
+- **`flask ingest-contracts`** (idempotent, no AI): checks each PDF's SHA-256 against the catalogue before writing anything and refuses on a mismatch. Stores `DocumentVersion` and `Paragraph` rows (page, bbox in PDF points with top-left origin, whitespace-normalised text, paragraph SHA-256, clause number, heading, plan scope). Scope: pages 1-36 of the PRUShield V2 sample are Premier and Plus, pages 37-59 are Standard, the A/B sample is PRUShield A and B. The three catalogue anchors resolve to the right paragraph hash and scope.
+- **Citation viewer** `/citations/<paragraph id>`: server-rendered PNG of the real PDF page, the paragraph drawn as an SVG rectangle in PDF points (no inline styles or scripts, CSP unchanged), page navigation limited to pages with the same scope, document version visible, "Open source PDF" (official URL at the page). It refuses with an error if the PDF's SHA-256 no longer matches the stored hash, and refuses a citation made for a plan the paragraph does not apply to.
+- **Old demo citations** moved to `/citations/demo/<clause id>` (the number space is shared). Only the route line in `compare.py` changed.
+- **/plans** filters by category (Health, Life, Wealth, Legacy) and kind, cards with category chips, coverage focus, contract status and "View plan". **/plans/<slug>** shows metadata, documents, riders or base plans, and for the PRUShield variants a Sources panel with real paragraphs and citation links. The numeric `/plans/<id>` page (with the AI summary) still serves the hidden demo plans only.
+- **Demo plans** are hidden (`is_hidden`), not deleted, so flags and scenarios survive.
+
+Open items from this checkpoint:
+
+- **Compare, Simulator and the dashboard "Top recommended plans" still use only the hidden fictional demo plans.** They need a premium (the simulator does `monthly_premium_cents // 100`, compare renders it) and a cover amount (`death_cover_cents`, `cover_ends_at_age`), and comparison cells with cited clauses. Catalogue plans have none of these, so they are not offered there. Redesign needed: premium-less rows, "not enough information" for cover amounts, comparison cells built from ingested paragraphs.
+- Plan AI summaries (6b) are not built for catalogue plans. The existing summary code works on the demo plans only. `flask generate-summaries` (in `app/ai/cli.py`, not touched) asks `catalogue_policies()`, which now returns catalogue plans that have no clauses, so it generates nothing until 6b.
+- Contract wording exists only for PRUShield Premier, Plus, Standard (and closed A, B). PRUExtra rider wording is missing. All other plans are brochure-only.
+- The A/B Sources panel shows table fragments (the contract has no clause headings for them).
+- Uses PyMuPDF (AGPL-3.0 licence): confirm it is acceptable before any deployment.
+
 ## Implementation tasks (suggested order)
 
 - [ ] 1. Set up project, design tokens and shared components (button, card, chip, cell state, nav)
@@ -132,6 +152,7 @@ Remaining (not built): real policy document ingestion (the catalogue is still th
 - [x] 5. Plans list and plan detail with language tabs
   - Done: see Checkpoint 6. Not built: real policy ingestion, other insurers, "My Plans", a full multilingual review of the translations, "Get this plan".
 - [ ] 6. Citation model and PDF viewer with line highlighting
+  - Done (checkpoint 7): real PDF page rendering with the paragraph highlighted for the PRUShield sample contracts, hash and scope checks. Still not built: "Other citations" list, citations from AI summaries on catalogue plans.
   - Done (sample only): `PolicyClause` model, citation page that shows the cited line highlighted with its line number, the claim and "Matches: clause X, line Y", and paging across the seeded sample pages.
   - Remaining: real PDF documents and rendering, download and "Open on Prudential.com.sg", "Other citations" list, citations from plan-detail AI summaries (task 5).
 - [ ] 7. Comparison table with four cell states and clause links

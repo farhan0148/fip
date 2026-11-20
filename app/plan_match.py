@@ -100,7 +100,11 @@ def rank_plans(policies, priorities, budget):
     for order, policy in enumerate(policies):
         topic = PLAN_TOPIC.get(policy.type)
         position = topics.index(topic) if topic in topics else None
-        fits = budget is not None and budget.fits(policy.monthly_premium_cents)
+        fits = (
+            budget is not None
+            and policy.monthly_premium_cents is not None  # an unknown premium never fits
+            and budget.fits(policy.monthly_premium_cents)
+        )
         reasons = []
         if position is not None:
             reasons.append(f"Matches your priority: {titles[topic]}")
@@ -152,6 +156,12 @@ def budget_tradeoff(premium_cents, budget):
             "note": "You skipped the budget question, chose Not sure, or typed your own answer, so we cannot compare "
                     "this plan's premium with a budget.",
         }
+    if premium_cents is None:
+        return {
+            "known": False,
+            "headline": "This plan's premium varies.",
+            "note": "The catalogue has no premium for this plan, so it cannot be compared with your budget.",
+        }
     left = budget.left_cents(premium_cents)
     fits = budget.fits(premium_cents)
     if fits:
@@ -201,6 +211,8 @@ def budget_row(budget, premium_cents, answered):
     if budget is None:
         return _row("Budget fit", UNKNOWN, None, NOT_ENOUGH + ": your budget is skipped, Not sure or typed in.")
     driver = f"Your budget: {budget.label}"
+    if premium_cents is None:
+        return _row("Budget fit", UNKNOWN, driver, NOT_ENOUGH + ": this plan's premium varies.")
     if budget.fits(premium_cents):
         return _row("Budget fit", GOOD, driver, f"{cents_text(premium_cents)} a month is within your band.")
     return _row("Budget fit", WEAK, driver, f"{cents_text(premium_cents)} a month is over the top of your band.")

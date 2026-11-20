@@ -1,27 +1,21 @@
-"""All plans (/plans) and plan detail (/plans/<id>). Plans come only from catalogue_policies()."""
+"""Plans pages.
+
+/plans and /plans/<slug> show the imported Prudential catalogue (no AI here).
+/plans/<id> (a number) is the older detail page for the hidden fictional demo plans. The dashboard's
+"Top recommended plans" still links to it.
+"""
 
 from flask import Blueprint, abort, g, render_template, request, url_for
 
-from . import comparison, plan_match, services
+from . import catalogue, comparison, plan_match, services
 from .ai import plan_summary
-from .catalogue import catalogue_policies
+from .catalogue import legacy_demo_policies
 from .extensions import db
-from .models import ComparisonCell, PolicyClause
+from .models import ComparisonCell, Paragraph, PolicyClause
 from .security import onboarding_complete_required
 
 bp = Blueprint("plans", __name__, url_prefix="/plans")
 
-# slug, label, the Policy.type it selects (None = every plan)
-TYPE_FILTERS = (
-    ("all", "All", None),
-    ("term_life", "Term Life", "Term life"),
-    ("hospitalisation", "Hospitalisation", "Hospitalisation"),
-    ("critical_illness", "Critical Illness", "Critical illness"),
-    ("whole_life", "Whole Life", "Whole life"),
-    ("retirement", "Retirement", "Retirement"),
-    ("disability", "Disability", "Disability"),
-)
-_FILTER_BY_SLUG = {slug: (label, type_) for slug, label, type_ in TYPE_FILTERS}
 SPEECH_LANG = {"en": "en", "zh": "zh", "ms": "ms", "ta": "ta"}
 
 
@@ -35,24 +29,136 @@ def _compare_url(policies, policy):
     return url_for("compare.index", a=policy.id, b=_other_plan_id(policies, policy))
 
 
+CATEGORY_FILTERS = (("all", "All"),) + tuple(catalogue.CATEGORY_LABELS.items())
+# URL value, label, Policy.kind. Closed plans are viewable but are not listed under "All kinds".
+KIND_FILTERS = (
+    ("all", "All kinds", None),
+    ("plan", "Plans", "catalogue_entry"),
+    ("variant", "Plan variants", "base_plan_variant"),
+    ("rider", "Riders", "rider"),
+    ("family", "Product families", "product_family"),
+    ("closed", "Closed to new members", "legacy_plan_variant"),
+)
+_KIND_BY_SLUG = {slug: (label, kind) for slug, label, kind in KIND_FILTERS}
+_CATEGORY_LABEL = dict(CATEGORY_FILTERS)
+
+SOURCE_HEADINGS = ("Deductible", "Co-insurance", "Pro-ration")
+
+
+def _card(policy):
+    return {
+        "policy": policy,
+        "categories": [catalogue.CATEGORY_LABELS[c] for c in policy.categories or []],
+        "kind_label": catalogue.KIND_LABELS.get(policy.kind, policy.kind),
+        "closed": catalogue.is_closed(policy),
+        "contract": catalogue.contract_view(policy),
+        "needs": [b.name for b in catalogue.base_plans_for(policy)] if policy.kind == "rider" else [],
+    }
+
+
 @bp.get("")
 @onboarding_complete_required
 def index():
-    policies = catalogue_policies()
-    slug = request.args.get("type", "all")
-    if slug not in _FILTER_BY_SLUG:
-        slug = "all"
-    label, type_ = _FILTER_BY_SLUG[slug]
-    shown = [p for p in policies if type_ is None or p.type == type_]
-    cards = [{"policy": p, "compare_url": _compare_url(policies, p)} for p in shown]
+    category = request.args.get("category", "all")
+    if category not in _CATEGORY_LABEL:
+        category = "all"
+    kind_slug = request.args.get("kind", "all")
+    if kind_slug not in _KIND_BY_SLUG:
+        kind_slug = "all"
+    kind = _KIND_BY_SLUG[kind_slug][1]
+
+    policies = catalogue.catalogue_policies()
+    demo = legacy_demo_policies()
+    shown = [
+        p for p in policies
+        if (category == "all" or category in (p.categories or []))
+        and ((kind is None and not catalogue.is_closed(p)) or (kind is not None and p.kind == kind))
+    ]
     return render_template(
         "plans/index.html",
-        filters=TYPE_FILTERS,
-        selected=slug,
-        selected_label=label,
-        cards=cards,
+        category_filters=CATEGORY_FILTERS,
+        kind_filters=KIND_FILTERS,
+        category=category,
+        kind=kind_slug,
+        cards=[_card(p) for p in shown],
+        demo_cards=[{"policy": p, "compare_url": _compare_url(demo, p)} for p in demo],
         total=len(policies),
         page_title="All plans",
+    )
+
+
+def _sources(policy):
+    """A few real paragraphs from the plan's own sample contract, with citation links.
+
+    Prefers the body of a clause with that heading (as in Premier, Plus and Standard). Falls back to a
+    paragraph that starts with the word (the tables in the A and B contract). Only this plan's scope.
+    """
+    chosen = {}
+    for word in SOURCE_HEADINGS:
+        rows = (
+            Paragraph.query.filter(
+                db.or_(Paragraph.heading.ilike(word), Paragraph.text.ilike(word + "%"))
+            )
+            .order_by(Paragraph.id)
+            .all()
+        )
+        rows = [p for p in rows if policy.slug in (p.scope or [])]
+        by_heading = [
+            p for p in rows
+            if (p.heading or "").lower() == word.lower() and not p.text.startswith(f"{p.clause_number} ")
+        ]
+        by_text = [p for p in rows if p.text.lower().startswith(word.lower()) and len(p.text) >= 40]
+        found = (by_heading or by_text or [None])[0]
+        if found is not None:
+            chosen[word] = found
+    return [
+        {
+            "paragraph": chosen[w],
+            "url": url_for("citations.view", paragraph_id=chosen[w].id, plan=policy.slug),
+            "excerpt": chosen[w].text if len(chosen[w].text) <= 240 else chosen[w].text[:237].rstrip() + "...",
+        }
+        for w in SOURCE_HEADINGS if w in chosen
+    ]
+
+
+def _related(policy):
+    if policy.kind == "rider":
+        return "Needs one of these base plans", catalogue.base_plans_for(policy)
+    if policy.kind == "base_plan_variant":
+        riders = catalogue.riders_for(policy)
+        return ("Optional riders (each needs this base plan)", riders) if riders else (None, [])
+    if policy.kind == "product_family":
+        contract_ids = {d.id for d in catalogue.contract_documents(policy)}
+        if not contract_ids:
+            return None, []
+        linked = catalogue.plans_sharing_documents(policy, contract_ids)
+        return "Variants with a sample contract", linked
+    return None, []
+
+
+@bp.get("/<slug>")
+@onboarding_complete_required
+def detail_slug(slug):
+    policy = catalogue.plan_by_slug(slug)
+    if policy is None:
+        abort(404)
+    contract = catalogue.contract_view(policy)
+    related_title, related = _related(policy)
+    return render_template(
+        "plans/plan.html",
+        policy=policy,
+        card=_card(policy),
+        contract=contract,
+        premium=catalogue.premium_view(policy),
+        documents=[
+            {"doc": d, "label": catalogue.DOCUMENT_TYPE_LABELS.get(d.type, d.type)}
+            for d in catalogue.plan_documents(policy)
+        ],
+        sources=_sources(policy) if contract["verified"] else [],
+        no_contract_note=catalogue.NO_CONTRACT_NOTE,
+        related_title=related_title,
+        related=related,
+        page_title=policy.name,
     )
 
 
@@ -103,7 +209,7 @@ def _simple_comparison(policies, policy):
 @bp.get("/<int:plan_id>")
 @onboarding_complete_required
 def detail(plan_id):
-    policies = catalogue_policies()
+    policies = legacy_demo_policies()
     policy = next((p for p in policies if p.id == plan_id), None)
     if policy is None:
         abort(404)
