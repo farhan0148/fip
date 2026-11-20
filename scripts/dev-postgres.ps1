@@ -17,7 +17,8 @@ $port = 5433
 $db = "insurance_navigator"
 
 if ($Stop) {
-    if (Test-Path (Join-Path $data "postmaster.pid")) { & "$bin\pg_ctl.exe" -D $data stop -m fast }
+    & "$bin\pg_isready.exe" -h 127.0.0.1 -p $port | Out-Null
+    if ($LASTEXITCODE -eq 0) { & "$bin\pg_ctl.exe" -D $data stop -m fast }
     else { Write-Host "Not running." }
     return
 }
@@ -36,7 +37,9 @@ if (-not (Test-Path (Join-Path $data "PG_VERSION"))) {
     & "$bin\initdb.exe" -D $data -U postgres -A trust -E UTF8 | Out-Null
 }
 
-if (-not (Test-Path (Join-Path $data "postmaster.pid"))) {
+& "$bin\pg_isready.exe" -h 127.0.0.1 -p $port | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    # Not accepting connections (never started, or a stale pid file after a reboot).
     # Start without -Wait (it would wait for the server itself), then poll until ready.
     $pgArgs = @("-D", "`"$data`"", "-o", "`"-p $port -c listen_addresses=127.0.0.1`"", "-l", "`"$(Join-Path $base 'postgres.log')`"", "start")
     Start-Process -FilePath "$bin\pg_ctl.exe" -ArgumentList $pgArgs -WindowStyle Hidden

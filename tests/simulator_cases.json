@@ -1,0 +1,190 @@
+{
+  "note": "Expected values are worked out by hand from the formulas in design.md. Run against app/simulator.py by pytest and against app/static/js/simulator-core.js by the browser check.",
+  "catalogue": [
+    {"id": 1, "name": "PRUActive Term", "death_cover": 500000, "ends_at_age": 65, "addable": true},
+    {"id": 2, "name": "PRUShield Premier", "death_cover": 0, "ends_at_age": null, "addable": false},
+    {"id": 3, "name": "PRUCritical Care", "death_cover": 100000, "ends_at_age": 75, "addable": true}
+  ],
+  "base": {
+    "fields": {
+      "age": "30", "support_years": "5", "support_annual": "50,000", "housing_debt": "80,000",
+      "other_debts": "0", "savings": "50,000", "existing_cover": "150,000"
+    },
+    "plans": [],
+    "events": []
+  },
+  "cases": [
+    {
+      "name": "worked example from design.md: gaps 130k, 580k, 80k",
+      "patch": {"plans": [1], "events": [
+        {"type": "buy_home", "age": "31", "amount": "300,000"},
+        {"type": "new_child", "age": "32", "amount": "150,000"}]},
+      "expect": {
+        "need_today": 280000, "gap_today": 130000, "evaluation_age": 32,
+        "gap_after_events": 580000, "gap_with_plans": 80000, "final_gap": 80000, "total_change": -50000,
+        "points": [[30, 280000, 650000], [31, 580000, 650000], [32, 730000, 650000], [65, 730000, 650000], [66, 730000, 150000]],
+        "gap_effects": [300000, 150000, -500000],
+        "expiry_notes": [{"plan_id": 1, "status": "ends", "age": 66, "before": 650000, "after": 150000}]
+      }
+    },
+    {
+      "name": "no events and no plan",
+      "patch": {},
+      "expect": {
+        "need_today": 280000, "gap_today": 130000, "evaluation_age": 30, "gap_after_events": 130000,
+        "gap_with_plans": null, "final_gap": 130000, "total_change": 0,
+        "points": [[30, 280000, 150000]], "gap_effects": [], "expiry_notes": []
+      }
+    },
+    {
+      "name": "events only",
+      "patch": {"events": [
+        {"type": "buy_home", "age": "31", "amount": "300,000"},
+        {"type": "new_child", "age": "32", "amount": "150,000"}]},
+      "expect": {
+        "need_today": 280000, "gap_today": 130000, "evaluation_age": 32, "gap_after_events": 580000,
+        "gap_with_plans": null, "final_gap": 580000, "total_change": 450000,
+        "points": [[30, 280000, 150000], [31, 580000, 150000], [32, 730000, 150000]],
+        "gap_effects": [300000, 150000], "expiry_notes": []
+      }
+    },
+    {
+      "name": "plan only: term cover covers up to 65 and drops at 66",
+      "patch": {"plans": [1]},
+      "expect": {
+        "need_today": 280000, "gap_today": 130000, "evaluation_age": 30, "gap_after_events": 130000,
+        "gap_with_plans": -370000, "final_gap": -370000, "total_change": -500000,
+        "points": [[30, 280000, 650000], [65, 280000, 650000], [66, 280000, 150000]],
+        "gap_effects": [-500000],
+        "expiry_notes": [{"plan_id": 1, "status": "ends", "age": 66, "before": 650000, "after": 150000}]
+      }
+    },
+    {
+      "name": "term expiry: the last event is after the plan's cover ends",
+      "patch": {"fields": {"age": "60"}, "plans": [1], "events": [{"type": "new_child", "age": "66", "amount": "30,000"}]},
+      "expect": {
+        "need_today": 280000, "gap_today": 130000, "evaluation_age": 66, "gap_after_events": 160000,
+        "gap_with_plans": 160000, "final_gap": 160000, "total_change": 30000,
+        "points": [[60, 280000, 650000], [65, 280000, 650000], [66, 310000, 150000]],
+        "gap_effects": [30000, 0],
+        "expiry_notes": [{"plan_id": 1, "status": "ends", "age": 66, "before": 650000, "after": 150000}]
+      }
+    },
+    {
+      "name": "plan already ended before today",
+      "patch": {"fields": {"age": "70"}, "plans": [1]},
+      "expect": {
+        "need_today": 280000, "gap_today": 130000, "evaluation_age": 70, "gap_after_events": 130000,
+        "gap_with_plans": 130000, "final_gap": 130000, "total_change": 0,
+        "points": [[70, 280000, 150000]], "gap_effects": [0],
+        "expiry_notes": [{"plan_id": 1, "status": "ended", "age": 65, "before": null, "after": null}]
+      }
+    },
+    {
+      "name": "plan still applies on its last covered age",
+      "patch": {"fields": {"age": "65"}, "plans": [1]},
+      "expect": {
+        "need_today": 280000, "gap_today": 130000, "evaluation_age": 65, "gap_after_events": 130000,
+        "gap_with_plans": -370000, "final_gap": -370000, "total_change": -500000,
+        "points": [[65, 280000, 650000], [66, 280000, 150000]], "gap_effects": [-500000],
+        "expiry_notes": [{"plan_id": 1, "status": "ends", "age": 66, "before": 650000, "after": 150000}]
+      }
+    },
+    {
+      "name": "two plans, one expires before the other",
+      "patch": {"plans": [1, 3]},
+      "expect": {
+        "need_today": 280000, "gap_today": 130000, "evaluation_age": 30, "gap_after_events": 130000,
+        "gap_with_plans": -470000, "final_gap": -470000, "total_change": -600000,
+        "points": [[30, 280000, 750000], [65, 280000, 750000], [66, 280000, 250000], [75, 280000, 250000], [76, 280000, 150000]],
+        "gap_effects": [-500000, -100000],
+        "expiry_notes": [
+          {"plan_id": 1, "status": "ends", "age": 66, "before": 750000, "after": 250000},
+          {"plan_id": 3, "status": "ends", "age": 76, "before": 250000, "after": 150000}]
+      }
+    },
+    {
+      "name": "savings larger than the need gives a negative gap",
+      "patch": {"fields": {"savings": "400,000"}},
+      "expect": {
+        "need_today": -70000, "gap_today": -220000, "evaluation_age": 30, "gap_after_events": -220000,
+        "gap_with_plans": null, "final_gap": -220000, "total_change": 0,
+        "points": [[30, -70000, 150000]], "gap_effects": [], "expiry_notes": []
+      }
+    },
+    {
+      "name": "income change can lower support",
+      "patch": {"events": [{"type": "income_change", "age": "40", "amount": "-100,000"}]},
+      "expect": {
+        "need_today": 280000, "gap_today": 130000, "evaluation_age": 40, "gap_after_events": 30000,
+        "gap_with_plans": null, "final_gap": 30000, "total_change": -100000,
+        "points": [[30, 280000, 150000], [40, 180000, 150000]], "gap_effects": [-100000], "expiry_notes": []
+      }
+    },
+    {
+      "name": "pay down mortgage lowers housing debt",
+      "patch": {"events": [{"type": "pay_down_mortgage", "age": "40", "amount": "50,000"}]},
+      "expect": {
+        "need_today": 280000, "gap_today": 130000, "evaluation_age": 40, "gap_after_events": 80000,
+        "gap_with_plans": null, "final_gap": 80000, "total_change": -50000,
+        "points": [[30, 280000, 150000], [40, 230000, 150000]], "gap_effects": [-50000], "expiry_notes": []
+      }
+    },
+    {
+      "name": "same-age events apply in the order listed: buy then pay down",
+      "patch": {"events": [
+        {"type": "buy_home", "age": "35", "amount": "100,000"},
+        {"type": "pay_down_mortgage", "age": "35", "amount": "100,000"}]},
+      "expect": {
+        "need_today": 280000, "gap_today": 130000, "evaluation_age": 35, "gap_after_events": 130000,
+        "gap_with_plans": null, "final_gap": 130000, "total_change": 0,
+        "points": [[30, 280000, 150000], [35, 280000, 150000]], "gap_effects": [100000, -100000], "expiry_notes": []
+      }
+    },
+    {
+      "name": "currency prefix, spaces and grouping are accepted",
+      "patch": {"fields": {"savings": "S$ 50,000", "existing_cover": "$150000"}},
+      "expect": {
+        "need_today": 280000, "gap_today": 130000, "evaluation_age": 30, "gap_after_events": 130000,
+        "gap_with_plans": null, "final_gap": 130000, "total_change": 0,
+        "points": [[30, 280000, 150000]], "gap_effects": [], "expiry_notes": []
+      }
+    },
+
+    {"name": "invalid: blank other debts", "patch": {"fields": {"other_debts": ""}}, "expect": {"errors": ["other_debts"]}},
+    {"name": "invalid: decimals", "patch": {"fields": {"support_annual": "50,000.50"}}, "expect": {"errors": ["support_annual"]}},
+    {"name": "invalid: bad comma grouping", "patch": {"fields": {"support_annual": "50,00"}}, "expect": {"errors": ["support_annual"]}},
+    {"name": "invalid: leading plus", "patch": {"fields": {"savings": "+50000"}}, "expect": {"errors": ["savings"]}},
+    {"name": "invalid: negative savings", "patch": {"fields": {"savings": "-5"}}, "expect": {"errors": ["savings"]}},
+    {"name": "invalid: age below 18", "patch": {"fields": {"age": "17"}}, "expect": {"errors": ["age"]}},
+    {"name": "invalid: age is text", "patch": {"fields": {"age": "abc"}}, "expect": {"errors": ["age"]}},
+    {"name": "invalid: support years above 60", "patch": {"fields": {"support_years": "61"}}, "expect": {"errors": ["support_years"]}},
+    {"name": "invalid: amount above the limit", "patch": {"fields": {"existing_cover": "2,000,000,000"}}, "expect": {"errors": ["existing_cover"]}},
+    {
+      "name": "invalid: every field blank",
+      "patch": {"fields": {"age": "", "support_years": "", "support_annual": "", "housing_debt": "", "other_debts": "", "savings": "", "existing_cover": ""}},
+      "expect": {"errors": ["age", "existing_cover", "housing_debt", "other_debts", "savings", "support_annual", "support_years"]}
+    },
+    {"name": "invalid: event before today's age", "patch": {"events": [{"type": "buy_home", "age": "25", "amount": "1,000"}]}, "expect": {"errors": ["events.0.age"]}},
+    {"name": "invalid: event age above 100", "patch": {"events": [{"type": "buy_home", "age": "101", "amount": "1,000"}]}, "expect": {"errors": ["events.0.age"]}},
+    {"name": "invalid: event amount blank", "patch": {"events": [{"type": "buy_home", "age": "35", "amount": ""}]}, "expect": {"errors": ["events.0.amount"]}},
+    {"name": "invalid: event type not chosen", "patch": {"events": [{"type": "", "age": "35", "amount": "1,000"}]}, "expect": {"errors": ["events.0.type"]}},
+    {"name": "invalid: retire at 55 is not modelled", "patch": {"events": [{"type": "retire_55", "age": "55", "amount": "1,000"}]}, "expect": {"errors": ["events.0.type"]}},
+    {"name": "invalid: job break is not modelled", "patch": {"events": [{"type": "job_break", "age": "40", "amount": "1,000"}]}, "expect": {"errors": ["events.0.type"]}},
+    {"name": "invalid: unknown event type", "patch": {"events": [{"type": "teleport", "age": "35", "amount": "1,000"}]}, "expect": {"errors": ["events.0.type"]}},
+    {"name": "invalid: negative amount for a home purchase", "patch": {"events": [{"type": "buy_home", "age": "35", "amount": "-1"}]}, "expect": {"errors": ["events.0.amount"]}},
+    {"name": "invalid: pay-down larger than housing debt", "patch": {"events": [{"type": "pay_down_mortgage", "age": "40", "amount": "400,000"}]}, "expect": {"errors": ["events.0.amount"]}},
+    {
+      "name": "invalid: pay down before the home is bought (same age, listed first)",
+      "patch": {"events": [
+        {"type": "pay_down_mortgage", "age": "35", "amount": "100,000"},
+        {"type": "buy_home", "age": "35", "amount": "100,000"}]},
+      "expect": {"errors": ["events.0.amount"]}
+    },
+    {"name": "invalid: income change takes support below zero", "patch": {"events": [{"type": "income_change", "age": "40", "amount": "-300,000"}]}, "expect": {"errors": ["events.0.amount"]}},
+    {"name": "invalid: plan without a death benefit", "patch": {"plans": [2]}, "expect": {"errors": ["plans"]}},
+    {"name": "invalid: duplicate plan", "patch": {"plans": [1, 1]}, "expect": {"errors": ["plans"]}},
+    {"name": "invalid: unknown plan", "patch": {"plans": [99]}, "expect": {"errors": ["plans"]}},
+    {"name": "invalid: too many plans", "patch": {"plans": [1, 3, 1, 3]}, "expect": {"errors": ["plans"]}}
+  ]
+}

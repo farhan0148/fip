@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% macro money_field(key, label, hint="") %}
+  <div class="sim-field">
+    <label for="f-{{ key }}">{{ label }}</label>
+    <div class="money-input"><span aria-hidden="true">S$</span>
+      <input id="f-{{ key }}" data-field="{{ key }}" type="text" inputmode="numeric" autocomplete="off" aria-describedby="err-{{ key }}">
+    </div>
+    {% if hint %}<p class="hint-line">{{ hint }}</p>{% endif %}
+    <p class="field-error" id="err-{{ key }}" hidden></p>
+  </div>
+{% endmacro %}
+
+{% block content %}
+<div class="container-wide sim" id="sim-root" data-csrf="{{ csrf_token() }}" data-save-url="{{ url_for('simulator.save') }}">
+  <div class="sim-head">
+    <div>
+      <h1 class="page-title">Coverage Needs Simulator</h1>
+      <p class="page-sub">See how plans and life events change your protection gap. Death cover only. Results are estimates to be confirmed with your Financial Consultant (FC), and are separate from the demo score on your dashboard.</p>
+    </div>
+    <div class="sim-save">
+      <button type="button" class="btn btn-secondary" id="save-btn">Save scenario</button>
+      <button type="button" class="btn btn-primary is-unavailable" disabled aria-disabled="true">Review with my FC <span class="pill">Soon</span></button>
+    </div>
+  </div>
+  <p class="save-status" id="save-status" role="status">Not saved yet.</p>
+  <p class="form-error" id="notice" role="status" hidden></p>
+  <noscript><p class="form-error">The simulator needs JavaScript to update results as you type.</p></noscript>
+
+  <div class="mode-tabs" aria-label="Cover type">
+    <span class="mode-tab is-active" aria-current="true">Death cover</span>
+    <span class="mode-tab is-unavailable" aria-disabled="true">Critical illness <span class="pill">Coming next</span></span>
+    <span class="mode-tab is-unavailable" aria-disabled="true">Disability <span class="pill">Coming next</span></span>
+  </div>
+
+  <div class="sim-grid">
+    <section class="card" aria-labelledby="household-title">
+      <h2 class="card-title" id="household-title">My household today</h2>
+      <p class="hint-line">Enter whole dollars. Use 0 where something does not apply.</p>
+      <div class="sim-tools">
+        <button type="button" class="btn btn-small btn-secondary" id="example-btn">Use the worked example</button>
+        <button type="button" class="btn btn-small btn-secondary" id="clear-btn">Clear all</button>
+      </div>
+
+      <div class="sim-field">
+        <label for="f-age">Your age today</label>
+        <input id="f-age" data-field="age" class="plain-input" type="text" inputmode="numeric" autocomplete="off" aria-describedby="err-age">
+        <p class="field-error" id="err-age" hidden></p>
+      </div>
+
+      <fieldset class="sim-field support-set">
+        <legend>Dependants' future support</legend>
+        <div class="support-row">
+          <div>
+            <label for="f-support_years">Years</label>
+            <input id="f-support_years" data-field="support_years" class="plain-input" type="text" inputmode="numeric" autocomplete="off" aria-describedby="err-support_years">
+          </div>
+          <span class="times" aria-hidden="true">×</span>
+          <div>
+            <label for="f-support_annual">Each year</label>
+            <div class="money-input"><span aria-hidden="true">S$</span>
+              <input id="f-support_annual" data-field="support_annual" type="text" inputmode="numeric" autocomplete="off" aria-describedby="err-support_annual">
+            </div>
+          </div>
+        </div>
+        <p class="hint-line" id="support-total">Total support: enter both fields.</p>
+        <p class="field-error" id="err-support_years" hidden></p>
+        <p class="field-error" id="err-support_annual" hidden></p>
+      </fieldset>
+
+      {{ money_field("housing_debt", "Housing debt") }}
+      {{ money_field("other_debts", "Other debts") }}
+      {{ money_field("savings", "Savings available") }}
+      {{ money_field("existing_cover", "Existing death cover", "Add up the death cover on the policies you already hold.") }}
+
+      <div class="how-box">
+        <p class="eyebrow">How we calculate</p>
+        <p>Need = support + debts − savings</p>
+        <p>Gap = need − existing death cover</p>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="whatif-title">
+      <h2 class="card-title" id="whatif-title">What if…</h2>
+
+      <h3 class="eyebrow">Plans</h3>
+      <ul class="plan-list" id="plan-list">
+        <li class="plan-row is-held"><div><strong>Existing cover</strong><span class="muted small" id="held-cover">Enter your existing death cover</span></div><span class="tag tag-held">Held</span></li>
+      </ul>
+      <div class="plan-add">
+        <label for="plan-select" class="sr-only">Plan to add</label>
+        <select id="plan-select"></select>
+        <button type="button" class="btn btn-secondary" id="plan-add-btn">+ Add plan</button>
+      </div>
+      <p class="field-error" id="err-plans" hidden></p>
+
+      <h3 class="eyebrow events-title">Milestone events</h3>
+      <ul class="event-list" id="event-list"></ul>
+      <p class="field-error" id="err-events" hidden></p>
+      <button type="button" class="btn btn-secondary btn-block" id="event-add-btn">+ Add event</button>
+      <p class="hint-line">Retire at 55/65 and job break are not modelled yet: their effect on death cover need is still to be defined.</p>
+    </section>
+
+    <div class="sim-right">
+      <p class="result-status" id="result-status" role="status"></p>
+      <div class="stats" id="stats" aria-live="polite">
+        <div class="stat stat-today"><p class="stat-label">Gap today</p><p class="stat-value" id="stat-today">—</p><p class="stat-sub" id="stat-today-sub"></p></div>
+        <div class="stat stat-after"><p class="stat-label">After life events</p><p class="stat-value" id="stat-after">—</p><p class="stat-sub" id="stat-after-sub"></p></div>
+        <div class="stat stat-with"><p class="stat-label" id="stat-with-label">With added plans</p><p class="stat-value" id="stat-with">—</p><p class="stat-sub" id="stat-with-sub"></p></div>
+      </div>
+      <p class="calc-line" id="calc-line"></p>
+      <p class="small muted">Estimate only. To be confirmed with your FC.</p>
+
+      <section class="card chart-card" aria-labelledby="chart-title">
+        <div class="chart-head">
+          <h2 class="card-title" id="chart-title">Cover vs need over time</h2>
+          <p class="legend-line"><span class="dot dot-need"></span> Need <span class="dot dot-cover"></span> My cover</p>
+        </div>
+        <svg id="chart" viewBox="0 0 640 280" role="img" aria-label="Bar chart of need and cover at key ages"></svg>
+        <p class="empty" id="chart-empty">Complete the figures to see the chart.</p>
+        <ul class="chart-notes" id="chart-notes"></ul>
+        <table class="sr-only" id="chart-table">
+          <caption>Need and cover at each age</caption>
+          <thead><tr><th scope="col">Age</th><th scope="col">Need</th><th scope="col">Cover</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+
+  <section class="card changed-card" aria-labelledby="changed-title">
+    <div class="changed-head">
+      <h2 class="card-title" id="changed-title">What changed, and why</h2>
+      <span class="chip chip-success" id="changed-chip" hidden></span>
+    </div>
+    <ul class="changed-list" id="changed-list"></ul>
+    <p class="empty" id="changed-empty">Complete the figures to see what moves your gap.</p>
+    <p class="small muted">Other inputs unchanged. This is an estimate from the figures above, to be confirmed with your FC before deciding.</p>
+  </section>
+</div>
+<script type="application/json" id="sim-data">{{ data | tojson }}</script>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/simulator-core.js') }}"></script>
+<script src="{{ url_for('static', filename='js/simulator.js') }}" defer></script>
+{% endblock %}

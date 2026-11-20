@@ -38,5 +38,4 @@ def _placeholder(title, needs_review):
 
 
 bp.add_url_rule("/plans", "plans", _placeholder("Plans", True))
-bp.add_url_rule("/simulator", "simulator", _placeholder("Simulator", True))
 bp.add_url_rule("/settings", "settings", _placeholder("Settings", False))

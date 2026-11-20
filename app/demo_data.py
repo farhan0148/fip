@@ -10,13 +10,16 @@ A row with no cell for a plan means the documents do not mention it.
 DEMO_POLICIES = (
     dict(insurer="Demo Insurer", name="PRUActive Term", type="Term life", monthly_premium_cents=8900,
          description="Affordable term life coverage for working adults.",
-         document_ref="PRUActive Term sample policy contract (fictional)"),
+         document_ref="PRUActive Term sample policy contract (fictional)",
+         death_cover_cents=50_000_000, cover_ends_at_age=65),
     dict(insurer="Demo Insurer", name="PRUShield Premier", type="Hospitalisation", monthly_premium_cents=14200,
          description="Integrated shield plan covering private hospital stays.",
-         document_ref="PRUShield Premier sample policy contract (fictional)"),
+         document_ref="PRUShield Premier sample policy contract (fictional)",
+         death_cover_cents=0, cover_ends_at_age=None),
     dict(insurer="Demo Insurer", name="PRUCritical Care", type="Critical illness", monthly_premium_cents=21500,
          description="Multi-pay critical illness cover for up to 120 conditions.",
-         document_ref="PRUCritical Care sample policy contract (fictional)"),
+         document_ref="PRUCritical Care sample policy contract (fictional)",
+         death_cover_cents=10_000_000, cover_ends_at_age=75),
 )
 
 CLAUSES = {

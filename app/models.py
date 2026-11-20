@@ -75,6 +75,10 @@ class Policy(db.Model):
     monthly_premium_cents = db.Column(db.Integer, nullable=False)
     description = db.Column(db.String(300), nullable=False)
     document_ref = db.Column(db.String(200))
+    # Simulator inputs. death_cover_cents: 0 means no death benefit, NULL means not set.
+    # cover_ends_at_age: last age the cover applies; NULL means it does not expire.
+    death_cover_cents = db.Column(db.BigInteger)
+    cover_ends_at_age = db.Column(db.Integer)
     is_demo = db.Column(db.Boolean, nullable=False, default=False, server_default=db.false())
 
 
@@ -146,3 +150,20 @@ class ComparisonFlag(db.Model):
     __table_args__ = (
         UniqueConstraint("user_id", "policy_id", "row_key", name="uq_flag_user_policy_row"),
     )
+
+
+class Scenario(db.Model):
+    """The signed-in user's saved simulator scenario (one per user for now)."""
+
+    __tablename__ = "scenarios"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True
+    )
+    name = db.Column(db.String(80), nullable=False, default="My scenario")
+    # Validated, parsed whole-dollar inputs: {"fields": {...}, "plans": [policy ids], "events": [...]}
+    inputs = db.Column(db.JSON, nullable=False)
+    # Result recalculated by Flask at save time.
+    result = db.Column(db.JSON, nullable=False)
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)

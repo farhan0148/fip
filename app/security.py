@@ -18,7 +18,7 @@ def csrf_token():
 
 
 def check_csrf():
-    sent = request.form.get("_csrf", "")
+    sent = request.form.get("_csrf") or request.headers.get("X-CSRF-Token", "")
     expected = session.get("_csrf", "")
     if not expected or not secrets.compare_digest(sent, expected):
         abort(400, description="Your session expired. Go back, refresh the page and try again.")

@@ -58,6 +58,9 @@ def register_commands(app):
                 added += 1
             if not policy.document_ref:  # plans seeded by an earlier build have no document name
                 policy.document_ref = data["document_ref"]
+            if policy.death_cover_cents is None:  # plans seeded before the simulator existed
+                policy.death_cover_cents = data["death_cover_cents"]
+                policy.cover_ends_at_age = data["cover_ends_at_age"]
             added += _seed_policy_documents(policy)
 
         if not User.query.filter_by(email=DEMO_EMAIL).first():

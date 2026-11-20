@@ -11,7 +11,7 @@
       <p class="page-sub">Here's your protection overview. Everything here is an estimate to be confirmed with your Financial Consultant (FC).</p>
     </div>
     <div class="dash-actions">
-      {{ soon_button("Simulate a change") }}
+      <a class="btn btn-secondary" href="{{ url_for('simulator.index') }}">Simulate a change</a>
       {{ soon_button("Ask AI") }}
       {{ soon_button("Find a plan", "primary") }}
     </div>

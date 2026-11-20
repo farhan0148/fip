@@ -106,6 +106,15 @@ Rules live in `app/priorities.py` (one table, each rule has a plain-language rea
 - **Compare** (nav bar or a plan card on the dashboard) compares two of the three sample plans. Citation links open
   `/citations/<clause id>` with the cited line highlighted. All plan names, prices and wording are fictional.
 
+## Simulator
+
+- **Simulator** (nav bar, or "Simulate a change" on the dashboard) calculates in the browser as you type and sends nothing
+  until you press **Save scenario**. Flask then validates and recalculates, and stores one scenario per account.
+- Plan cover amounts and expiry ages come from the seeded demo plans. Run `flask --app wsgi db upgrade` and
+  `flask --app wsgi seed-demo` after pulling this version; `seed-demo` fills in the new columns on existing demo plans.
+- The calculation lives in `app/simulator.py` and `app/static/js/simulator-core.js`. Change both together and run
+  `pytest` (it checks `tests/simulator_cases.json` against the Python version).
+
 ## Notes
 
 - Inter font files in `app/static/fonts/` are under the SIL Open Font License (`LICENSE-Inter.txt`).
