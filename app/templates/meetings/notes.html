@@ -1,0 +1,67 @@
+{% extends "fc/layout.html" %}
+{% block fc_content %}
+<a class="back-link" href="{{ url_for('meetings.fc_index') }}">&larr; Meetings</a>
+<h1 class="page-title">Notes: {{ meeting.title }}</h1>
+<p class="page-sub">{{ meeting.client.full_name }} &middot; {{ meeting.scheduled_at.strftime("%d %b %Y") }} &middot; {{ topics[meeting.topic] }}. <strong>Private to you</strong> until you send them.</p>
+{% if error %}<p class="form-error" role="alert" id="notes-error">{{ error }}</p>{% endif %}
+{% if saved %}<p class="notice is-good" role="status" id="notes-saved">Saved privately. The customer's copy has not changed.</p>{% endif %}
+{% if sent %}<p class="notice is-good" role="status" id="notes-sent">Sent to {{ meeting.client.full_name }}. They can read it under Saved Notes.</p>{% endif %}
+
+<section class="card" aria-labelledby="ai-title" id="ai-card">
+  <h2 class="card-title" id="ai-title">AI draft from the recording</h2>
+  {% if meeting.status != "ended" %}
+    <p class="muted">The meeting has not ended yet.</p>
+  {% elif note.process_status == "processing" %}
+    <p class="notice" role="status" id="progress" data-status-url="{{ url_for('meeting_notes.status', meeting_id=meeting.id) }}"><span id="progress-text">{{ note.progress or "Working" }}</span></p>
+    <p class="small muted">This usually takes under a minute. You can leave this page and come back.</p>
+  {% else %}
+    <p class="small" id="recordings-count">Audio received: you {{ recordings.fc }} segment(s), {{ meeting.client.first_name }} {{ recordings.client }} segment(s).{% if not meeting.recording_started %} Recording was never agreed by both of you, so nothing was captured.{% endif %}</p>
+    {% if note.process_status == "failed" %}<p class="notice" role="alert" id="process-failed">{{ note.progress }}</p>{% endif %}
+    {% if note.process_status == "ready" %}<p class="small muted">The draft below came from the transcript. Items marked [unclear] need your check. It is a draft for you, not advice.</p>{% endif %}
+    {% if recordings.fc + recordings.client > 0 and note.process_status in ("none", "failed") %}
+    <form method="post" action="{{ url_for('meeting_notes.process', meeting_id=meeting.id) }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-primary" id="create-draft">{{ "Try again" if note.process_status == "failed" else "Create AI draft" }}</button>
+      <span class="small muted">Uses the AI once for this recording. Wait until both audio files show as received.</span>
+    </form>
+    {% elif recordings.fc + recordings.client == 0 and note.process_status != "ready" %}
+    <p class="muted">No recording to process. You can write the notes by hand below.</p>
+    {% endif %}
+  {% endif %}
+</section>
+
+{% if note.process_status != "processing" %}
+<section class="card" aria-labelledby="draft-title">
+  <h2 class="card-title" id="draft-title">Your notes {% if note.sent_at %}<span class="chip chip-success">Sent {{ note.sent_at.strftime("%d %b %Y") }}</span>{% endif %}{% if unsent %} <span class="chip chip-warning" id="unsent">Unsent changes</span>{% endif %}</h2>
+  {% if draft is none %}
+    <p class="muted">{% if note.discarded_at %}You discarded the draft.{% else %}No notes yet.{% endif %}</p>
+    <form method="post" action="{{ url_for('meeting_notes.manual', meeting_id=meeting.id) }}" class="plan-actions">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-secondary" id="start-manual">Write notes by hand</button>
+      {% if note.ai_draft %}<button type="submit" name="source" value="ai" class="btn btn-secondary" id="restore-ai">Restore the AI draft</button>{% endif %}
+    </form>
+  {% else %}
+    {% if unsent %}<p class="notice" role="status">The customer still sees the version you sent on {{ note.sent_at.strftime("%d %b %Y, %H:%M") }}. Your later edits are private until you send the update.</p>{% endif %}
+    <form method="post" action="{{ url_for('meeting_notes.save', meeting_id=meeting.id) }}" id="notes-form">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      {% for key, title in sections %}
+      <div class="roa-section">
+        <label for="{{ key }}"><strong>{{ title }}</strong> <span class="small muted">(one per line)</span></label>
+        <textarea id="{{ key }}" name="{{ key }}" rows="5">{{ as_text(draft[key]) }}</textarea>
+      </div>
+      {% endfor %}
+      <div class="plan-actions">
+        <button type="submit" class="btn btn-secondary" id="save-notes">Save privately</button>
+        <a class="btn btn-primary" id="preview-notes" href="{{ url_for('meeting_notes.preview', meeting_id=meeting.id) }}">Preview and send to customer</a>
+      </div>
+    </form>
+    <form method="post" action="{{ url_for('meeting_notes.discard', meeting_id=meeting.id) }}" class="plan-actions">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <label class="toggle"><input type="checkbox" name="confirm" value="yes" required id="confirm-discard"> Yes, discard this draft{% if note.sent_json %} (back to the version already sent){% endif %}</label>
+      <button type="submit" class="btn btn-secondary" id="discard-notes">Discard draft</button>
+    </form>
+  {% endif %}
+</section>
+{% endif %}
+{% if note.process_status == "processing" %}<script src="{{ url_for('static', filename='js/notes-progress.js') }}" defer></script>{% endif %}
+{% endblock %}

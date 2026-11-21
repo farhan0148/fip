@@ -1,0 +1,22 @@
+{% extends "fc/layout.html" %}
+{% block fc_content %}
+<h1 class="page-title">Preview: what {{ meeting.client.full_name }} will see</h1>
+<p class="page-sub">Sending shares only these notes, with the meeting date and your name. It does not share the transcript, the recording, or any Record of Advice.</p>
+{% if problem %}<p class="form-error" role="alert" id="preview-problem">{{ problem }}</p>{% endif %}
+<section class="card" id="preview-card">
+  <p class="small muted">{{ meeting.title }} &middot; {{ meeting.scheduled_at.strftime("%d %b %Y") }} &middot; {{ meeting.fc.full_name }}</p>
+  {% for key, title in sections %}
+  <h2 class="data-sub">{{ title }}</h2>
+  {% if draft[key] %}<ul class="plain-list">{% for item in draft[key] %}<li>&bull; {{ item }}</li>{% endfor %}</ul>{% else %}<p class="muted small">None</p>{% endif %}
+  {% endfor %}
+</section>
+<div class="plan-actions">
+  <a class="btn btn-secondary" href="{{ url_for('meeting_notes.notes', meeting_id=meeting.id) }}">Back to editing</a>
+  {% if not problem %}
+  <form method="post" action="{{ url_for('meeting_notes.send', meeting_id=meeting.id) }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="confirm" value="yes">
+    <button type="submit" class="btn btn-primary" id="confirm-send">{{ "Send update to customer" if resend else "Confirm and send to customer" }}</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

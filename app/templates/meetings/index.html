@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-wide">
+  <h1 class="page-title">Meetings</h1>
+  <p class="page-sub">Video meetings with your Financial Consultant (FC). Notes your FC chooses to send you appear under Saved Notes.</p>
+  {% if meetings %}
+  <section class="card">
+    <table class="log-table">
+      <thead><tr><th scope="col">Meeting</th><th scope="col">With</th><th scope="col">Date</th><th scope="col"></th></tr></thead>
+      <tbody>
+        {% for m in meetings %}
+        <tr>
+          <td>{{ m.title }} <span class="small muted">({{ topics[m.topic] }})</span></td>
+          <td>{{ m.fc.full_name }}</td>
+          <td>{{ m.scheduled_at.strftime("%d %b %Y") }}</td>
+          <td>{% if m.status == "ended" %}<span class="chip chip-muted">Ended</span>{% else %}<a class="btn btn-primary btn-small" href="{{ url_for('meetings.room_client', meeting_id=m.id) }}">Join</a>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  {% else %}
+  <p class="empty">No meetings yet. When your FC schedules one it appears here.</p>
+  {% endif %}
+</div>
+{% endblock %}

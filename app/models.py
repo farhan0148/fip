@@ -468,3 +468,102 @@ class FCDemoState(db.Model):
     roa_sections = db.Column(db.JSON)                           # edited text by section key; NULL = template as generated
     roa_status = db.Column(db.String(10), nullable=False, default="draft", server_default="draft")
     updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)
+
+
+
+# ---------- Real meetings, notes and ROA drafts (Week 8) ----------
+
+class Meeting(db.Model):
+    """A video meeting between one client and the FC they are assigned to. Only those two may open it."""
+
+    __tablename__ = "meetings"
+
+    id = db.Column(db.Integer, primary_key=True)
+    client_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    fc_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    title = db.Column(db.String(120), nullable=False)
+    topic = db.Column(db.String(20), nullable=False, default="general", server_default="general")  # plan_comparison, coverage_review, general
+    plan_ids = db.Column(db.JSON, nullable=False, default=list)           # demo plans discussed
+    scheduled_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+    status = db.Column(db.String(10), nullable=False, default="scheduled", server_default="scheduled")  # scheduled, live, ended
+    epoch = db.Column(db.Integer, nullable=False, default=0, server_default="0")   # bumps on every join; clears stale call signals
+    client_seen_at = db.Column(db.DateTime(timezone=True))
+    fc_seen_at = db.Column(db.DateTime(timezone=True))
+    client_rec = db.Column(db.Boolean, nullable=False, default=False, server_default=db.false())   # each side's recording consent
+    fc_rec = db.Column(db.Boolean, nullable=False, default=False, server_default=db.false())
+    recording_started = db.Column(db.Boolean, nullable=False, default=False, server_default=db.false())  # both agreed at some point
+    started_at = db.Column(db.DateTime(timezone=True))
+    ended_at = db.Column(db.DateTime(timezone=True))
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+
+    client = db.relationship("User", foreign_keys=[client_id])
+    fc = db.relationship("User", foreign_keys=[fc_id])
+
+
+class MeetingSignal(db.Model):
+    """One WebRTC signalling message (offer, answer or ICE candidate) for the current epoch of a meeting."""
+
+    __tablename__ = "meeting_signals"
+
+    id = db.Column(db.Integer, primary_key=True)
+    meeting_id = db.Column(db.Integer, db.ForeignKey("meetings.id", ondelete="CASCADE"), nullable=False, index=True)
+    epoch = db.Column(db.Integer, nullable=False)
+    sender = db.Column(db.String(6), nullable=False)       # client or fc
+    kind = db.Column(db.String(10), nullable=False)        # offer, answer, candidate
+    payload = db.Column(db.Text, nullable=False)
+
+
+class MeetingRecording(db.Model):
+    """One consented audio segment captured in one participant's browser. Never shown to the customer."""
+
+    __tablename__ = "meeting_recordings"
+
+    id = db.Column(db.Integer, primary_key=True)
+    meeting_id = db.Column(db.Integer, db.ForeignKey("meetings.id", ondelete="CASCADE"), nullable=False, index=True)
+    role = db.Column(db.String(6), nullable=False)         # client or fc
+    audio = db.Column(db.LargeBinary, nullable=False)
+    mime = db.Column(db.String(60), nullable=False)
+    started_ms = db.Column(db.BigInteger, nullable=False, default=0)   # when the segment began (browser clock)
+    transcript = db.Column(db.JSON)                        # saved once transcribed, so it is never transcribed twice
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class MeetingNote(db.Model):
+    """The FC's notes for a meeting. Private until sent. The customer only ever sees `sent_json`."""
+
+    __tablename__ = "meeting_notes"
+
+    id = db.Column(db.Integer, primary_key=True)
+    meeting_id = db.Column(db.Integer, db.ForeignKey("meetings.id", ondelete="CASCADE"), nullable=False, unique=True)
+    process_status = db.Column(db.String(12), nullable=False, default="none", server_default="none")  # none, processing, ready, failed
+    progress = db.Column(db.String(120))
+    error = db.Column(db.String(40))
+    transcript = db.Column(db.JSON)                        # merged transcript, FC only
+    ai_draft = db.Column(db.JSON)                          # what the model proposed, kept as it was
+    fc_draft = db.Column(db.JSON)                          # the FC's private working copy
+    sent_json = db.Column(db.JSON)                         # snapshot the customer sees
+    sent_at = db.Column(db.DateTime(timezone=True))
+    discarded_at = db.Column(db.DateTime(timezone=True))
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)
+
+    meeting = db.relationship("Meeting")
+
+
+class RoaDraft(db.Model):
+    """A private Record of Advice draft for one meeting. Only the FC who owns it can open it."""
+
+    __tablename__ = "roa_drafts"
+
+    id = db.Column(db.Integer, primary_key=True)
+    meeting_id = db.Column(db.Integer, db.ForeignKey("meetings.id", ondelete="CASCADE"), nullable=False, unique=True)
+    fc_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    client_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    sections = db.Column(db.JSON, nullable=False, default=list)
+    removed = db.Column(db.JSON, nullable=False, default=list)            # generated sections the FC removed
+    recommendation = db.Column(db.Text)                                   # the FC's own words
+    recommendation_approved = db.Column(db.Boolean, nullable=False, default=False, server_default=db.false())
+    status = db.Column(db.String(10), nullable=False, default="draft", server_default="draft")  # draft, reviewed
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)
+
+    meeting = db.relationship("Meeting")

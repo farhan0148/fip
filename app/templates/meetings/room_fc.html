@@ -1,0 +1,5 @@
+{% extends "fc/layout.html" %}
+{% block fc_content %}
+<a class="back-link" href="{{ url_for('meetings.fc_index') }}">&larr; Meetings</a>
+{% include "meetings/_room.html" %}
+{% endblock %}

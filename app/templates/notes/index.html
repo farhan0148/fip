@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-wide">
+  <h1 class="page-title">Saved Notes</h1>
+  <p class="page-sub">Notes your Financial Consultant (FC) chose to send you after a meeting. Nothing else from a meeting appears here.</p>
+  {% if rows %}
+  <section class="card">
+    <ul class="plain-list">
+      {% for meeting, note in rows %}
+      <li><a href="{{ url_for('notes.detail', meeting_id=meeting.id) }}"><strong>{{ meeting.title }}</strong></a>
+        <span class="small muted">{{ meeting.scheduled_at.strftime("%d %b %Y") }} &middot; {{ meeting.fc.full_name }}</span></li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% else %}
+  <p class="empty" id="no-notes">No notes yet. When your FC sends you notes from a meeting, they appear here.</p>
+  {% endif %}
+</div>
+{% endblock %}

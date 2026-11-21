@@ -1,0 +1,47 @@
+{% extends "fc/layout.html" %}
+{% block fc_content %}
+<h1 class="page-title">Meetings</h1>
+<p class="page-sub">Real video meetings with the clients assigned to you. Notes stay private until you send them.</p>
+{% if error %}<p class="form-error" role="alert">Enter a title and choose a meeting type.</p>{% endif %}
+<section class="card" aria-labelledby="new-meeting">
+  <h2 class="card-title" id="new-meeting">Schedule a meeting</h2>
+  {% if clients %}
+  <form method="post" action="{{ url_for('meetings.fc_create') }}" class="ask-form">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <div class="picker">
+      <div class="picker-field"><label for="client_id">Client</label>
+        <select id="client_id" name="client_id">{% for c in clients %}<option value="{{ c.id }}">{{ c.full_name }}</option>{% endfor %}</select></div>
+      <div class="picker-field"><label for="topic">Type</label>
+        <select id="topic" name="topic">{% for key, label in topics %}<option value="{{ key }}">{{ label }}</option>{% endfor %}</select></div>
+    </div>
+    <label for="title">Title</label>
+    <input id="title" name="title" class="plain-input" maxlength="120" required>
+    <fieldset><legend class="small muted">Plans to discuss (for a plan comparison)</legend>
+      {% for p in plans %}<label class="toggle"><input type="checkbox" name="plan_ids" value="{{ p.id }}"> {{ p.name }}</label>{% endfor %}</fieldset>
+    <button type="submit" class="btn btn-primary" id="schedule-meeting">Create meeting</button>
+  </form>
+  {% else %}
+  <p class="empty">You have no assigned clients yet. Clients are assigned when they choose you and share something.</p>
+  {% endif %}
+</section>
+{% if meetings %}
+<section class="card">
+  <h2 class="card-title">Your meetings</h2>
+  <table class="log-table">
+    <thead><tr><th scope="col">Meeting</th><th scope="col">Client</th><th scope="col">Date</th><th scope="col">Status</th><th scope="col"></th></tr></thead>
+    <tbody>
+      {% for m in meetings %}
+      <tr>
+        <td>{{ m.title }} <span class="small muted">({{ topic_labels[m.topic] }})</span></td>
+        <td>{{ m.client.full_name }}</td>
+        <td>{{ m.scheduled_at.strftime("%d %b %Y") }}</td>
+        <td><span class="chip chip-muted">{{ m.status|capitalize }}</span>{% if notes.get(m.id) and notes[m.id].sent_at %} <span class="chip chip-success">Notes sent</span>{% endif %}</td>
+        <td>{% if m.status != "ended" %}<a href="{{ url_for('meetings.room_fc', meeting_id=m.id) }}">Open room</a>{% else %}<a href="{{ url_for('meeting_notes.notes', meeting_id=m.id) }}">Notes</a>{% endif %}
+          &middot; <a href="{{ url_for('roa.open', meeting_id=m.id) }}">ROA</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-wide">
+  <a class="back-link" href="{{ url_for('meetings.index') }}">&larr; Meetings</a>
+  {% include "meetings/_room.html" %}
+</div>
+{% endblock %}

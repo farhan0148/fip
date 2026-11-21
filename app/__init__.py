@@ -48,7 +48,7 @@ def create_app(test_config=None):
     db.init_app(app)
     migrate.init_app(app, db)
 
-    from . import ai, ask_routes, auth, buy_routes, citation_viewer, compare, dashboard, fc_demo, fc_portal, onboarding, plans, settings_routes, sharing_routes, simulator_routes
+    from . import ai, ask_routes, auth, buy_routes, citation_viewer, meeting_notes, meetings, roa, compare, dashboard, fc_demo, fc_portal, onboarding, plans, settings_routes, sharing_routes, simulator_routes
     from .cli import register_commands
     from .security import add_security_headers, csrf_token, load_current_user
 
@@ -61,6 +61,10 @@ def create_app(test_config=None):
     app.register_blueprint(ask_routes.bp)
     app.register_blueprint(buy_routes.bp)
     app.register_blueprint(settings_routes.bp)
+    app.register_blueprint(meetings.bp)
+    app.register_blueprint(meeting_notes.bp)
+    app.register_blueprint(meeting_notes.customer_bp)
+    app.register_blueprint(roa.bp)
     app.register_blueprint(fc_demo.bp)
     app.register_blueprint(simulator_routes.bp)
     register_commands(app)
@@ -82,6 +86,8 @@ def create_app(test_config=None):
         ("Plans", "plans.index"),
         ("Compare", "compare.index"),
         ("Simulator", "simulator.index"),
+        ("Meetings", "meetings.index"),
+        ("Saved Notes", "notes.index"),
         ("Settings", "settings.index"),
     )
 

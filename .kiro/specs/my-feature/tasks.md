@@ -169,6 +169,16 @@ Demo plans only (the real Prudential plans stay hidden behind `SHOW_PRUDENTIAL_P
 
 Simulated or not built: video, payment, the AI pre-meeting summary and meeting summary (fixed sample text), PDF export of the ROA, "Download my data", sharing categories beyond profile, scenario and flagged items.
 
+## Week 8 (built): real meetings, Ask AI by voice, adaptable ROA
+
+- **Meetings** (`app/meetings.py`, `static/js/meeting-room.js`): WebRTC video between a client and their assigned FC, signalled through this app by polling. Only those two can open a meeting. Recording needs both people to agree, runs in each person's own browser, stops on withdrawal or when the FC ends the meeting, and the call goes on without it.
+- **Notes** (`app/meeting_notes.py`, `app/ai/meeting_ai.py`, `app/ai/transcribe.py`): the FC presses "Create AI draft" once per recording. Each audio segment is transcribed once, then one summary call writes discussion points, next steps and open questions, with "[unclear]" markers. Failure keeps manual notes. The FC saves privately, previews, then confirms to send. Later edits stay private until sent again. The customer's **Saved Notes** tab shows only what was sent to them.
+- **Ask AI by voice:** record a question, check or correct the transcript, ask, read the cited answer, Listen / Replay / Stop with a matching browser voice (no request on replay).
+- **ROA** (`app/roa.py`): private drafts from the client's shared profile, simulator scenario, the FC's meeting notes, the demo plans' cited findings and the FC's own approved recommendation. Plan comparisons list options and reasoning, coverage reviews list estimates and assumptions, undecided meetings list open questions and next steps. Missing facts say "To confirm". Edits, added and removed sections survive a refresh.
+- Setup: `flask seed-meetings` (demo client + Daniel + three demo meetings). Zero provider calls on page loads, replay, reopening and polling. Zero automatic retries.
+
+Not verified live: real Groq speech-to-text and notes quality, speaker audio over a real network (STUN/TURN), browser voices for Chinese, Malay and Tamil. Not built: live transcript, sending the ROA to the client, Week 14 sign-off.
+
 ## Implementation tasks (suggested order)
 
 - [ ] 1. Set up project, design tokens and shared components (button, card, chip, cell state, nav)

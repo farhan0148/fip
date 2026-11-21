@@ -4,7 +4,7 @@
   <h1 class="page-title">Ask AI about a plan</h1>
   <p class="page-sub">Pick a sample plan and ask a question, or get a plain-language summary. Answers use only that plan's sample clauses (fictional wording) and cite them. Nothing about you is sent. This is not advice to buy.</p>
 
-  <form method="post" action="{{ url_for('ask.submit') }}" class="card ask-form" id="ask-form">
+  <form method="post" action="{{ url_for('ask.submit') }}" class="card ask-form" id="ask-form" data-transcribe-url="{{ url_for('ask.transcribe_question') }}" data-csrf="{{ csrf_token() }}">
     <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
     <div class="picker">
       <div class="picker-field">
@@ -22,6 +22,12 @@
     </div>
     <label for="ask-question">Your question</label>
     <textarea id="ask-question" name="question" rows="3" maxlength="300" placeholder="For example: Does this plan pay out for critical illness?">{{ question or "" }}</textarea>
+    <div class="voice-row" id="voice-row" hidden>
+      <button type="button" class="btn btn-secondary" id="mic-start">&#127908; Record my question</button>
+      <button type="button" class="btn btn-secondary" id="mic-stop" hidden>Stop recording</button>
+      <span class="small muted" id="mic-status" role="status">You can also just type.</span>
+    </div>
+    <p class="notice" id="transcript-note" hidden>This is the transcript of your recording. Check it and correct anything, then press Ask. Nothing is sent to the AI until you do.</p>
     {% if error %}<p class="form-error" role="alert">{{ error }}</p>{% endif %}
     <div class="plan-actions">
       <button type="submit" name="action" value="ask" class="btn btn-primary">Ask</button>
@@ -75,6 +81,17 @@
       {% endfor %}
     </ol>
     {% endif %}
+    {% set spoken = result.view.statements | map(attribute='text') | join(' ') %}
+    {% if not spoken and result.status == "insufficient" %}{% set spoken = result.insufficient %}{% endif %}
+    {% if spoken %}
+    <div class="speak-row" id="speak-row" data-lang="{{ language }}" hidden>
+      <script type="application/json" id="speak-text">{{ spoken | tojson }}</script>
+      <button type="button" class="btn btn-secondary" id="speak-play">&#128266; Listen</button>
+      <button type="button" class="btn btn-secondary" id="speak-replay">Replay</button>
+      <button type="button" class="btn btn-secondary" id="speak-stop">Stop</button>
+      <span class="small muted" id="speak-status" role="status"></span>
+    </div>
+    {% endif %}
     <p class="small muted">Fictional sample wording. Confirm details with your Financial Consultant (FC).</p>
   </section>
   {% endif %}
@@ -90,4 +107,7 @@
   </section>
   {% endif %}
 </div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/ask-voice.js') }}" defer></script>
 {% endblock %}

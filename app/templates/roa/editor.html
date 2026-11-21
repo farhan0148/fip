@@ -1,0 +1,47 @@
+{% extends "fc/layout.html" %}
+{% block fc_content %}
+<a class="back-link" href="{{ url_for('roa.index') }}">&larr; ROA drafts</a>
+<div class="fc-head">
+  <div>
+    <h1 class="page-title">Record of Advice: {{ meeting.title }}</h1>
+    <p class="page-sub">{{ meeting.client.first_name }} &middot; {{ meeting.scheduled_at.strftime("%d %b %Y") }} &middot; {{ topics[meeting.topic] }}. <strong>Private to you.</strong> Sending meeting notes never shares this.</p>
+  </div>
+  {% if draft %}<p><span class="chip {{ 'chip-success' if draft.status == 'reviewed' else 'chip-muted' }}" id="roa-status">{{ draft.status|capitalize }}</span></p>{% endif %}
+</div>
+{% if saved %}<p class="notice is-good" role="status" id="roa-saved">Saved.</p>{% endif %}
+{% if draft is none %}
+<section class="card">
+  <p>No draft yet for this meeting.</p>
+  <form method="post" action="{{ url_for('roa.generate', meeting_id=meeting.id) }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button type="submit" class="btn btn-primary" id="generate-roa">Create draft from sources</button></form>
+</section>
+{% else %}
+<form method="post" action="{{ url_for('roa.save', meeting_id=meeting.id) }}" id="roa-form">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <section class="card" aria-labelledby="rec-title">
+    <h2 class="card-title" id="rec-title">Your recorded recommendation</h2>
+    <p class="small muted">Only what you type and approve appears in the draft. Nothing is recommended for you.</p>
+    <textarea name="recommendation" id="recommendation" rows="3" aria-label="Recorded recommendation">{{ draft.recommendation or "" }}</textarea>
+    <label class="toggle"><input type="checkbox" name="recommendation_approved" id="recommendation_approved"{% if draft.recommendation_approved %} checked{% endif %}> I approve this as my recorded recommendation</label>
+  </section>
+  {% for s in draft.sections %}
+  <section class="card roa-section" id="section-{{ s.id }}">
+    <div class="fc-head">
+      <input name="title_{{ s.id }}" value="{{ s.title }}" class="plain-input" aria-label="Section title" maxlength="120">
+      <span>{% if "To confirm" in s.body %}<span class="chip chip-warning">To confirm</span>{% endif %}{% if s.manual %}<span class="chip chip-muted">Added by you</span>{% elif s.edited %}<span class="chip chip-info">Edited</span>{% endif %}</span>
+    </div>
+    <textarea name="body_{{ s.id }}" id="body_{{ s.id }}" rows="{{ [4, s.body.count('\n') + 2]|max }}" aria-label="{{ s.title }}">{{ s.body }}</textarea>
+    {% if s.sources %}<p class="small muted">Sources:
+      {% for src in s.sources %}{% if src.url %}<a href="{{ src.url }}">{{ src.label }}</a>{% else %}{{ src.label }}{% endif %}{% if not loop.last %}; {% endif %}{% endfor %}</p>{% endif %}
+    <button type="submit" name="action" value="remove:{{ s.id }}" class="linklike" id="remove-{{ s.id }}">Remove section</button>
+  </section>
+  {% endfor %}
+  <div class="plan-actions">
+    <button type="submit" name="action" value="save" class="btn btn-primary" id="save-roa">Save draft</button>
+    <button type="submit" name="action" value="add" class="btn btn-secondary" id="add-section">Add section</button>
+    <button type="submit" name="action" value="refresh" class="btn btn-secondary" id="refresh-roa">Refresh from sources</button>
+    <button type="submit" name="action" value="review" class="btn btn-secondary" id="review-roa">Mark as reviewed</button>
+  </div>
+  <p class="small muted">Refresh updates only the sections you have not edited. Your edits, added sections and removed sections stay as they are. Any later change needs a new review.</p>
+</form>
+{% endif %}
+{% endblock %}

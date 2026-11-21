@@ -3,11 +3,12 @@
 The provider is called only by the POST routes here, each from a button. Nothing on a GET calls it.
 """
 
-from flask import Blueprint, abort, g, redirect, render_template, request, url_for
+from flask import Blueprint, abort, current_app, g, jsonify, redirect, render_template, request, url_for
 
 from . import services
 from .ai import ask as ai_ask
-from .ai import plan_summary
+from .ai import client as ai_client
+from .ai import plan_summary, transcribe
 from .catalogue import legacy_demo_policies
 from .extensions import db
 from .models import AskHistory, Policy, UserSetting
@@ -113,6 +114,37 @@ def submit():
         "relevant": [{"clause": c, "url": url_for("compare.citation", clause_id=c.id, plan=policy.id)}
                      for c in answer["clauses"]],
         "insufficient": ai_ask.INSUFFICIENT, "cited": cited})
+
+
+MAX_QUESTION_AUDIO = 5 * 1024 * 1024
+TRANSCRIBE_ERRORS = {"not_configured": 503, "busy": 503, "timeout": 504, "empty": 422, "error": 502}
+
+
+@bp.post("/ask/transcribe")
+@onboarding_complete_required
+def transcribe_question():
+    """Turn a recorded question into text so the customer can correct it. One provider call per press, no retry.
+
+    The audio is sent to the provider, used once and not stored. The customer still has to press Ask."""
+    request.max_content_length = MAX_QUESTION_AUDIO     # before anything reads the request
+    check_csrf()
+    mime = (request.mimetype or "").lower()
+    if not (mime.startswith("audio/") or mime == "video/webm"):
+        abort(400)
+    audio = request.get_data()
+    if not audio:
+        abort(400)
+    if not ai_client.is_configured():
+        return jsonify(error="not_configured"), 503
+    limiter = current_app.extensions.get("ai_summary_limiter")
+    if limiter is not None and not limiter.check(g.user.id)[0]:
+        return jsonify(error="rate_limited"), 429
+    language = _language(request.args.get("lang"))
+    try:
+        result = transcribe.transcribe(audio, "question.webm", mime, language)
+    except ai_client.AIUnavailable as exc:
+        return jsonify(error=exc.reason), TRANSCRIBE_ERRORS.get(exc.reason, 502)
+    return jsonify(text=result["text"][:ai_ask.MAX_QUESTION_CHARS])
 
 
 @bp.post("/plans/<int:plan_id>/summary")

@@ -87,6 +87,22 @@ def register_commands(app):
         for doc_id, (count, created) in results.items():
             click.echo(f"{doc_id}: {count} paragraphs ({'new version' if created else 'already ingested, refreshed'}).")
 
+    @app.cli.command("seed-meetings")
+    @click.option("--client", "client_email", default=DEMO_EMAIL, show_default=True, help="Client account to set up.")
+    @click.option("--fc", "fc_email", default="fc.daniel@example.com", show_default=True, help="Demo FC to assign.")
+    def seed_meetings(client_email, fc_email):
+        """Fictional demo setup for real meetings, notes and ROA drafts (adds only what is missing)."""
+        from . import meeting_seed
+
+        client = User.query.filter_by(email=client_email.strip().lower(), role="client").first()
+        fc = User.query.filter_by(email=fc_email.strip().lower(), role="fc").first()
+        if client is None or fc is None:
+            raise click.ClickException("Client or FC not found. Run flask seed-demo first, or check the emails.")
+        meetings = meeting_seed.seed_for(client, fc)
+        click.echo(f"{client.email} is assigned to {fc.full_name} with three demo meetings:")
+        for m in meetings:
+            click.echo(f"  #{m.id} {m.title} ({m.status})  client: /meetings/{m.id}  FC: /fc/meetings/{m.id}")
+
     @app.cli.command("seed-demo")
     @click.option("--reset", is_flag=True, help="Delete existing demo plans first (accounts are kept).")
     def seed_demo(reset):

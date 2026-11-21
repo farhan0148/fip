@@ -106,13 +106,13 @@ def translation_hash(base_hash, english_statements):
 
 # ---------- the provider call (same Groq class and settings as client.py, larger output budget) ----------
 
-def _complete(system_prompt, user_message, max_tokens):
+def _complete(system_prompt, user_message, max_tokens, timeout=None):
     api_key, model = client._setting("GROQ_API_KEY"), client._setting("GROQ_MODEL")
     if not api_key or not model:
         raise client.AIUnavailable("not_configured")
     try:
         fast = current_app.config.get("AI_FAST_FAIL", True)   # Week 7: short timeout, no automatic retry
-        provider = client.Groq(api_key=api_key, timeout=client.TIMEOUT_SECONDS * (1 if fast else 2),
+        provider = client.Groq(api_key=api_key, timeout=timeout or client.TIMEOUT_SECONDS * (1 if fast else 2),
                                max_retries=0 if fast else client.MAX_RETRIES)
         extra = {"reasoning_effort": "low"} if "gpt-oss" in model.lower() else {}
         # gpt-oss models spend output tokens on hidden reasoning. With many paragraphs, "medium" reasoning can use

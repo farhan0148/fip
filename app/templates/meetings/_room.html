@@ -1,0 +1,27 @@
+<div id="room" class="meeting-room" data-csrf="{{ csrf_token() }}">
+  <script type="application/json" id="room-config">{{ config | tojson }}</script>
+  <div class="fc-head">
+    <div>
+      <h1 class="page-title">{{ meeting.title }}</h1>
+      <p class="page-sub">{{ topics[meeting.topic] }} &middot; with {{ meeting.fc.full_name if role == "client" else meeting.client.full_name }}</p>
+    </div>
+    <p><span id="rec-indicator" class="chip chip-danger rec-dot" hidden role="status">&#9679; Recording</span></p>
+  </div>
+  <p class="notice" role="status" id="call-status">Starting&hellip;</p>
+  <div class="video-grid">
+    <figure class="video-tile"><video id="remote-video" autoplay playsinline aria-label="{{ meeting.fc.full_name if role == 'client' else meeting.client.full_name }}"></video><figcaption class="small muted">{{ meeting.fc.full_name if role == "client" else meeting.client.full_name }}</figcaption></figure>
+    <figure class="video-tile video-self"><video id="local-video" autoplay playsinline muted aria-label="You"></video><figcaption class="small muted">You</figcaption></figure>
+  </div>
+  <section class="card" aria-labelledby="rec-title">
+    <h2 class="card-title" id="rec-title">Recording</h2>
+    <p class="small" id="rec-note">Not recording. Recording starts only if you both agree.</p>
+    <p class="small muted">Only audio is recorded, and only while you both agree. If either of you withdraws, or the meeting ends, recording stops. The call can carry on without it. The recording is used by the FC to prepare notes and is never shown to the customer.</p>
+    <div class="plan-actions">
+      <button type="button" class="btn btn-secondary" id="consent-btn" aria-pressed="false">I agree to recording</button>
+      {% if role == "fc" %}<button type="button" class="btn btn-primary" id="end-btn">End meeting</button>
+      {% else %}<button type="button" class="btn btn-secondary" id="leave-btn">Leave call</button>{% endif %}
+    </div>
+  </section>
+  <p id="after-end" class="notice" hidden>This meeting has ended. {% if role == "client" %}<a href="{{ url_for('meetings.index') }}">Back to meetings</a>{% else %}<a href="{{ url_for('meeting_notes.notes', meeting_id=meeting.id) }}">Open the meeting notes</a>{% endif %}</p>
+</div>
+<script src="{{ url_for('static', filename='js/meeting-room.js') }}" defer></script>

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-narrow">
+  <a class="back-link" href="{{ url_for('notes.index') }}">&larr; Saved Notes</a>
+  <h1 class="page-title">{{ meeting.title }}</h1>
+  <p class="page-sub">Meeting on {{ meeting.scheduled_at.strftime("%d %b %Y") }} with {{ meeting.fc.full_name }}. Sent {{ note.sent_at.strftime("%d %b %Y") }}.</p>
+  <section class="card" id="saved-note">
+    {% for key, title in sections %}
+    <h2 class="data-sub">{{ title }}</h2>
+    {% if data[key] %}<ul class="plain-list">{% for item in data[key] %}<li>&bull; {{ item }}</li>{% endfor %}</ul>{% else %}<p class="muted small">None</p>{% endif %}
+    {% endfor %}
+  </section>
+  <p class="small muted">Written by your FC after the meeting. These notes are not an insurance recommendation or a contract.</p>
+</div>
+{% endblock %}

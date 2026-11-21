@@ -1,0 +1,15 @@
+{% extends "fc/layout.html" %}
+{% block fc_content %}
+<a class="back-link" href="{{ url_for('roa.open', meeting_id=meeting.id) }}">&larr; Back to the ROA</a>
+<h1 class="page-title">Source clause</h1>
+<p class="page-sub">{{ clause.policy.document_ref or clause.policy.name }}, page {{ clause.page }}. Fictional sample wording.</p>
+<section class="card source-page">
+  <ol class="source-lines">
+    {% for row in lines %}
+    <li class="source-line{% if row.id == clause.id %} is-cited{% endif %}"{% if row.id == clause.id %} id="cited-line" aria-current="true"{% endif %}>
+      <span class="line-no">{{ row.line }}</span><span class="line-text"><strong>{{ row.clause }}</strong> {{ row.text }}</span>
+    </li>
+    {% endfor %}
+  </ol>
+</section>
+{% endblock %}
