@@ -26,7 +26,11 @@ def _other_plan_id(policies, policy):
 
 
 def _compare_url(policies, policy):
-    return url_for("compare.index", a=policy.id, b=_other_plan_id(policies, policy))
+    """While the real plans are hidden, Compare shows the demo plans, so link to this plan. Otherwise the demo
+    plans are not in Compare and the button opens the real-plan comparison."""
+    if not catalogue.prudential_enabled():
+        return url_for("compare.index", a=policy.id, b=_other_plan_id(policies, policy))
+    return url_for("compare.index")
 
 
 CATEGORY_FILTERS = (("all", "All"),) + tuple(catalogue.CATEGORY_LABELS.items())
@@ -76,6 +80,7 @@ def index():
     ]
     return render_template(
         "plans/index.html",
+        prudential=catalogue.prudential_enabled(),
         category_filters=CATEGORY_FILTERS,
         kind_filters=KIND_FILTERS,
         category=category,
@@ -144,6 +149,13 @@ def detail_slug(slug):
         abort(404)
     contract = catalogue.contract_view(policy)
     related_title, related = _related(policy)
+
+    language = request.args.get("lang", "en")
+    if language not in plan_summary.LANGUAGE_CODES:
+        language = "en"
+    summary = None
+    if contract["verified"] and not catalogue.is_closed(policy):  # closed plans are not summarised
+        summary = _contract_summary_view(plan_summary.summary_for(policy, language, g.user.id), policy)
     return render_template(
         "plans/plan.html",
         policy=policy,
@@ -155,6 +167,9 @@ def detail_slug(slug):
             for d in catalogue.plan_documents(policy)
         ],
         sources=_sources(policy) if contract["verified"] else [],
+        summary=summary,
+        languages=plan_summary.LANGUAGES,
+        language=language,
         no_contract_note=catalogue.NO_CONTRACT_NOTE,
         related_title=related_title,
         related=related,
@@ -193,6 +208,34 @@ def _summary_view(summary, policy):
     return {**summary, "statements": statements, "sources": sources}
 
 
+def _contract_summary_view(summary, policy):
+    """Add citation markers [1] [2] and a Sources list. Only paragraphs in this plan's scope are linked."""
+    ids = []
+    for statement in summary["statements"]:
+        for paragraph_id in statement.get("paragraph_ids", []):
+            if paragraph_id not in ids:
+                ids.append(paragraph_id)
+    rows = {p.id: p for p in Paragraph.query.filter(Paragraph.id.in_(ids))} if ids else {}
+    rows = {i: p for i, p in rows.items() if policy.slug in (p.scope or [])}
+    numbers = {pid: n for n, pid in enumerate([i for i in ids if i in rows], start=1)}
+
+    def url(pid):
+        return url_for("citations.view", paragraph_id=pid, plan=policy.slug)
+
+    statements = [
+        {"text": st["text"],
+         "markers": [{"n": numbers[i], "url": url(i)} for i in st.get("paragraph_ids", []) if i in numbers]}
+        for st in summary["statements"]
+    ]
+    sources = [
+        {"n": n, "url": url(pid), "page": rows[pid].page, "clause": rows[pid].clause_number,
+         "heading": rows[pid].heading,
+         "text": rows[pid].text if len(rows[pid].text) <= 240 else rows[pid].text[:237].rstrip() + "..."}
+        for pid, n in numbers.items()
+    ]
+    return {**summary, "statements": statements, "sources": sources}
+
+
 def _simple_comparison(policies, policy):
     """This plan against up to two similar ones (same type first), from the existing comparison cells."""
     similar = sorted((p for p in policies if p.id != policy.id), key=lambda p: (p.type != policy.type, p.id))[:2]
@@ -202,7 +245,7 @@ def _simple_comparison(policies, policy):
     return {
         "plans": [policy] + similar,
         "rows": shared + distinctive,
-        "full_url": url_for("compare.index", a=policy.id, b=similar[0].id),
+        "full_url": None if catalogue.prudential_enabled() else url_for("compare.index", a=policy.id, b=similar[0].id),
     }
 
 
@@ -236,5 +279,6 @@ def detail(plan_id):
         fit_rows=plan_match.compatibility_rows(g.user, policy, hospital.state if hospital else None),
         simple=_simple_comparison(policies, policy),
         compare_url=_compare_url(policies, policy),
+        compare_label="Compare PRUShield plans" if catalogue.prudential_enabled() else "Compare",
         page_title=policy.name,
     )

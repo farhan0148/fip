@@ -89,6 +89,7 @@ def test_new_plans_have_clauses_and_cells_like_the_old_ones(app, seeded):
 
 def test_catalogue_helpers_split_the_hidden_demo_plans_from_the_catalogue(app, seeded):
     from app.catalogue import catalogue_policies, legacy_demo_policies
+    app.config["SHOW_PRUDENTIAL_PLANS"] = True
     db.session.add(Policy(insurer="Real", name="Not a demo", type="Term life", monthly_premium_cents=None,
                           description="x", is_demo=False, slug="not-a-demo"))
     db.session.commit()

@@ -201,9 +201,14 @@ class ComparisonCell(db.Model):
     state = db.Column(db.String(20), nullable=False)
     finding = db.Column(db.String(300), nullable=False)
     clause_id = db.Column(db.Integer, db.ForeignKey("policy_clauses.id", ondelete="SET NULL"))
+    # Catalogue plans cite a paragraph of the ingested contract PDF instead of a demo clause.
+    paragraph_id = db.Column(db.Integer, db.ForeignKey("paragraphs.id", ondelete="SET NULL"))
+    # Hash of the retrieved paragraphs this finding was made from (so the cache knows when it is stale).
+    paragraphs_hash = db.Column(db.String(64))
 
     policy = db.relationship("Policy")
     clause = db.relationship("PolicyClause")
+    paragraph = db.relationship("Paragraph")
 
     __table_args__ = (
         UniqueConstraint("policy_id", "row_key", name="uq_cell_policy_row"),
@@ -213,7 +218,8 @@ class ComparisonCell(db.Model):
         ),
         # Requirements R3: "Not included" only when the wording supports it.
         CheckConstraint(
-            "state <> 'not_included' OR clause_id IS NOT NULL", name="ck_cell_not_included_cited"
+            "state <> 'not_included' OR clause_id IS NOT NULL OR paragraph_id IS NOT NULL",
+            name="ck_cell_not_included_cited",
         ),
     )
 

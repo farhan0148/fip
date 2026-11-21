@@ -15,7 +15,7 @@ from dataclasses import dataclass
 
 from .models import ComparisonCell, ComparisonFlag, Policy
 
-ROWS = (
+DEMO_ROWS = (
     ("duration", "Coverage duration"),
     ("premium", "Premium"),
     ("death_cover", "Death and disability payout"),
@@ -24,6 +24,23 @@ ROWS = (
     ("critical_illness", "Critical illness"),
     ("premium_waiver", "Premium waiver"),
 )
+
+# Fixed rows for the real PRUShield plans. Premium is not a row of findings: it always says "varies".
+# key, label, what the row asks (also shown to the model that proposes the findings)
+REAL_ROW_DETAILS = (
+    ("ward", "Ward class covered", "Which hospital and ward classes the plan pays for."),
+    ("annual_limit", "Annual claim limit", "The most the plan pays in a policy year, or in a lifetime, as the wording states it."),
+    ("deductible", "Deductible", "The part of a claim the policyholder pays first."),
+    ("coinsurance", "Co-insurance", "The share of the bill the policyholder pays after the deductible."),
+    ("hospitalisation", "Pre and post hospitalisation", "Treatment paid for before admission and after discharge."),
+    ("cancer", "Cancer drug and treatment cover", "What the plan pays for cancer drugs and cancer treatment."),
+    ("exclusions", "Key exclusions", "Main things the plan does not pay for. Use state included when the wording lists exclusions, and name them in the finding."),
+    ("renewal", "Renewal terms", "Whether and how the policy renews, and what happens to premiums at renewal."),
+)
+REAL_ROWS = tuple((key, label) for key, label, _ in REAL_ROW_DETAILS)
+
+# Every row label in one place (the consent screens look labels up here).
+ROWS = DEMO_ROWS + REAL_ROWS
 
 STATE_LABELS = {
     "included": "Included (subject to conditions)",
@@ -34,6 +51,7 @@ STATE_LABELS = {
 STATE_ORDER = ("included", "optional_rider", "unconfirmed", "not_included")
 
 NOT_STATED = "Not stated in this policy."
+NOT_STATED_REAL = "Not stated in the available wording"
 
 
 @dataclass
@@ -52,6 +70,10 @@ class Cell:
     @property
     def clause(self):
         return self.cell.clause if self.cell is not None else None
+
+    @property
+    def paragraph(self):
+        return self.cell.paragraph if self.cell is not None else None
 
     @property
     def can_flag(self):

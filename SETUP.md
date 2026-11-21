@@ -142,6 +142,8 @@ Without a key the page shows a "Standard summary" built from the comparison cell
 Free Groq plans can return HTTP 429 (busy) when many summaries are generated at once; the page then shows the standard summary and tries again on the next view.
 ## Prudential catalogue and contracts
 
+The real Prudential plans are hidden by default. Add `SHOW_PRUDENTIAL_PLANS=1` to `.env` to show them on Plans and Compare.
+
 The Plans pages show the Prudential catalogue from `data/prudential/`. After `db upgrade`:
 
 ```powershell
@@ -150,6 +152,17 @@ The Plans pages show the Prudential catalogue from `data/prudential/`. After `db
 ```
 `ingest-contracts` refuses if a PDF does not match the hash in the catalogue. The citation viewer re-checks the hash on every view.
 It needs PyMuPDF (`pip install -r requirements.txt`).
+
+## AI summaries and comparison for the PRUShield plans
+
+After `import-catalogue` and `ingest-contracts` (and `db upgrade`), with `GROQ_API_KEY` and `GROQ_MODEL` in `.env`:
+
+```powershell
+.\.venv\Scripts\flask --app wsgi generate-summaries [--plan prushield-standard-plan] [--language en] [--force]
+.\.venv\Scripts\flask --app wsgi generate-comparison [--plan prushield-premier] [--force]
+```
+Both skip plans without contract wording and closed plans. `/compare` needs `generate-comparison` first. Free Groq plans allow about 8,000 tokens a minute
+and 200,000 a day, so the commands wait and retry when the service is busy and may need a second run.
 
 ## Simulator
 

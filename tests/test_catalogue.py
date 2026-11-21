@@ -34,6 +34,7 @@ def run(app, *args):
 
 @pytest.fixture()
 def imported(app, seeded):
+    app.config["SHOW_PRUDENTIAL_PLANS"] = True   # the real plans are hidden by default
     result = run(app, "import-catalogue")
     assert result.exit_code == 0, result.output
     return app
@@ -115,6 +116,7 @@ def test_import_refuses_a_broken_catalogue_and_writes_nothing(app, seeded, tmp_p
 
 
 def test_demo_plans_are_hidden_not_deleted_and_flags_and_scenarios_survive(app, seeded, browser):
+    app.config["SHOW_PRUDENTIAL_PLANS"] = True
     browser.signup()
     browser.onboard()
     demo = Policy.query.filter_by(is_demo=True, name="PRUActive Term").one()
@@ -132,13 +134,12 @@ def test_demo_plans_are_hidden_not_deleted_and_flags_and_scenarios_survive(app, 
 
 
 def test_compare_simulator_and_dashboard_still_use_only_the_hidden_demo_plans(user):
-    for url in ("/compare", "/simulator", "/dashboard"):
+    for url in ("/simulator", "/dashboard"):
         page = user.get(url).get_data(as_text=True)
         assert user.get(url).status_code == 200, url
         assert "prushield-standard-plan" not in page and "PRUActive Term" in page, url
-    compare_page = user.get("/compare").get_data(as_text=True)
-    assert "S$142/mo" in compare_page  # the fictional premium, not a catalogue plan
-    assert "Closed to new members" not in compare_page and "pruextra" not in compare_page
+    compare_page = user.get("/compare").get_data(as_text=True)   # 6b: Compare moved to the real plans
+    assert "PRUActive Term" not in compare_page and "S$142" not in compare_page
 
 
 # ---------- premium ----------
@@ -313,11 +314,11 @@ def test_shield_pages_show_product_variant_version_date_documents_and_sources(us
     assert "Plan variant" in page and "Catalogue checked 20 November 2026" in page
     assert "Version: April 2026; PRUShield Version 2 2026" in page
     assert "Sample contract (published by MOH)" in page and "Brochure" in page and "EN" in page
-    sources = re.findall(r'href="(/citations/(\d+)\?plan=prushield-premier)"', page)
+    sources = re.findall(r'href="(/citations/(\d+)\?plan=prushield-premier)"', page.split('id="sources-title"')[1])
     assert len(sources) == 3
     standard = user.get("/plans/prushield-standard-plan").get_data(as_text=True)
     premier_ids = {i for _, i in sources}
-    standard_ids = {i for _, i in re.findall(r'href="(/citations/(\d+)\?plan=prushield-standard-plan)"', standard)}
+    standard_ids = {i for _, i in re.findall(r'href="(/citations/(\d+)\?plan=prushield-standard-plan)"', standard.split('id="sources-title"')[1])}
     assert len(standard_ids) == 3 and not premier_ids & standard_ids
     for pid in standard_ids:
         assert "prushield-standard-plan" in db.session.get(Paragraph, int(pid)).scope
@@ -489,10 +490,44 @@ def test_old_demo_citations_keep_working_on_their_new_address(app, seeded, brows
 
 def test_plans_page_still_links_the_demo_plans_to_ai_summary_and_compare(user):
     page = user.get("/plans").get_data(as_text=True)
-    head, section = page.split("Sample plans with AI summary and Compare")
+    head, section = page.split("Sample plans with AI summary")
     demo = Policy.query.filter_by(is_demo=True).order_by(Policy.id).all()
     for p in demo:
         assert f'href="/plans/{p.id}"' in section
-    assert section.count(">Compare<") == 6 and "Demo data" in section
+    assert ">Compare<" not in section and "Demo data" in section
     assert user.get(f"/plans/{demo[0].id}").status_code == 200
     assert len(re.findall(r'<h2 class="plan-name">', head)) == 47   # demo cards use h3, not mixed in
+
+
+# ---------- the real plans are hidden by default ----------
+
+@pytest.fixture()
+def hidden_user(app, seeded):
+    for command in ("import-catalogue", "ingest-contracts"):
+        assert run(app, command).exit_code == 0
+    assert app.config["SHOW_PRUDENTIAL_PLANS"] is False   # the default
+    from conftest import Browser
+    b = Browser(app.test_client())
+    b.signup()
+    b.onboard()
+    return b
+
+
+def test_real_plans_are_hidden_by_default_and_the_demo_plans_are_back(hidden_user):
+    plans = hidden_user.get("/plans").get_data(as_text=True)
+    names = re.findall(r'<h2 class="plan-name">([^<]+)</h2>', plans)
+    assert names == ["PRUActive Term", "PRUShield Premier", "PRUCritical Care", "PRULife Whole", "PRURetire Income", "PRUDisability Guard"]
+    assert plans.count('aria-label="Compare ') == 6 and "Contract wording" not in plans and "/plans/prushield-standard-plan" not in plans
+    assert hidden_user.get("/plans/prushield-premier").status_code == 404
+    assert hidden_user.get("/plans/pruactive-term").status_code == 404
+
+
+def test_compare_and_plan_summary_use_the_demo_plans_while_the_real_ones_are_hidden(hidden_user):
+    compare = hidden_user.get("/compare").get_data(as_text=True)
+    assert "PRUActive Term" in compare and "S$142/mo" in compare and "fictional demo data" in compare
+    assert "Premium varies" not in compare and "Generate findings" not in compare
+    demo = Policy.query.filter_by(is_demo=True, name="PRUActive Term").one()
+    page = hidden_user.get(f"/plans/{demo.id}").get_data(as_text=True)
+    assert 'id="summary-title"' in page and f'href="/compare?a={demo.id}&amp;b=' in page
+    assert hidden_user.post("/compare/generate", {"policy_id": plan("prushield-premier").id}).status_code == 400
+    assert catalogue.catalogue_policies() == [] and catalogue.selectable_policies() == []

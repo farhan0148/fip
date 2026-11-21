@@ -13,7 +13,14 @@ Selector rules (every "pick a new plan" list must go through `selectable_policie
 * a rider is selectable only together with one of its applicable base plans.
 """
 
+from flask import current_app
+
 from .models import Document, PlanDocument, Policy
+
+
+def prudential_enabled():
+    """The real Prudential plans are shown only when SHOW_PRUDENTIAL_PLANS=1 (hidden for now)."""
+    return bool(current_app.config.get("SHOW_PRUDENTIAL_PLANS"))
 
 KIND_LABELS = {
     "catalogue_entry": "Plan",
@@ -43,7 +50,9 @@ DOCUMENT_TYPE_LABELS = {
 
 
 def catalogue_policies():
-    """Imported Prudential plans that may be listed, in catalogue order."""
+    """Imported Prudential plans that may be listed, in catalogue order. Empty while they are hidden."""
+    if not prudential_enabled():
+        return []
     return (
         Policy.query.filter(Policy.slug.isnot(None), Policy.is_hidden.is_(False)).order_by(Policy.id).all()
     )
@@ -55,6 +64,8 @@ def legacy_demo_policies():
 
 
 def plan_by_slug(slug):
+    if not prudential_enabled():
+        return None
     return Policy.query.filter(Policy.slug == slug, Policy.is_hidden.is_(False)).first()
 
 

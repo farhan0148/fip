@@ -66,6 +66,53 @@
   </section>
   {% endif %}
 
+  {% if summary %}
+  {% set reasons = {
+    "not_configured": "The AI summary is not set up on this server, so the standard summary is shown.",
+    "timeout": "The AI service took too long, so the standard summary is shown.",
+    "error": "The AI service could not be reached, so the standard summary is shown.",
+    "empty": "The AI service returned nothing, so the standard summary is shown.",
+    "invalid_output": "The AI summary did not match the policy wording, so it was not used. The standard summary is shown.",
+    "rate_limited": "Too many summaries were requested just now, so the standard summary is shown.",
+    "busy": "The AI service is busy right now, so the standard summary is shown. Try again in a minute."
+  } %}
+  <section class="card summary-card-plan" aria-labelledby="summary-title">
+    <div class="summary-top">
+      <h2 class="card-title" id="summary-title">Plan summary</h2>
+      <nav class="lang-tabs" aria-label="Summary language">
+        {% for code, name in languages %}
+          <a href="{{ url_for('plans.detail_slug', slug=policy.slug, lang=code) if code != 'en' else url_for('plans.detail_slug', slug=policy.slug) }}" lang="{{ code }}"
+             class="lang-tab{% if code == language %} is-active{% endif %}"{% if code == language %} aria-current="true"{% endif %}>{{ name }}</a>
+        {% endfor %}
+      </nav>
+    </div>
+    <p><span class="chip {{ 'chip-info' if summary.source == 'ai' else 'chip-muted' }}" id="summary-label">{{ summary.label }}</span></p>
+    {% if summary.note %}<p class="notice" role="status">{{ summary.note }}.</p>{% endif %}
+    {% if summary.source == 'standard' and summary.language == 'en' and summary.reason in reasons %}
+      <p class="small muted">{{ reasons[summary.reason] }}</p>
+    {% endif %}
+    {% if summary.statements %}
+    <div id="summary-text" lang="{{ summary.language }}" class="plan-summary-text">
+      {% for st in summary.statements %}
+      <p class="stmt"><span class="stmt-text">{{ st.text }}</span>
+        {% for m in st.markers %}<sup class="cite"><a href="{{ m.url }}" aria-label="Open source {{ m.n }}">[{{ m.n }}]</a></sup>{% endfor %}</p>
+      {% endfor %}
+    </div>
+    {% if summary.sources %}
+    <ol class="source-refs" aria-label="Sources">
+      {% for src in summary.sources %}
+      <li id="src-{{ src.n }}"><a href="{{ src.url }}">[{{ src.n }}] p.{{ src.page }}{% if src.clause %}, cl.{{ src.clause }}{% endif %}{% if src.heading %} ({{ src.heading }}){% endif %}</a></li>
+      {% endfor %}
+    </ol>
+    {% endif %}
+    {% if summary.language != 'en' and not summary.note %}<p class="small muted">Cited policy wording stays in English.</p>{% endif %}
+    {% else %}
+    <p class="empty">No summary is available for this plan yet.</p>
+    {% endif %}
+    <p class="small muted">Summaries are explanations of the sample contract wording, not advice. A dated sample may differ from your issued policy.</p>
+  </section>
+  {% endif %}
+
   <section class="card sources-panel" aria-labelledby="sources-title">
     <h2 class="card-title" id="sources-title">Sources</h2>
     {% if sources %}

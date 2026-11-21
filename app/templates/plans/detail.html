@@ -26,7 +26,7 @@
     <div class="plan-head-side">
       <p class="price">{{ policy.monthly_premium_cents | money }}<span class="muted small"> /mo</span></p>
       <div class="plan-actions">
-        <a class="btn btn-secondary" href="{{ compare_url }}">Compare</a>
+        <a class="btn btn-secondary" href="{{ compare_url }}">{{ compare_label }}</a>
         <a class="btn btn-secondary" href="{{ url_for('simulator.index') }}">See impact on my gap</a>
         <button type="button" class="btn btn-primary is-unavailable" disabled aria-disabled="true">Get this plan <span class="pill">Soon</span></button>
       </div>
@@ -110,7 +110,7 @@
         <h2 class="card-title" id="simple-title">How it compares to similar plans</h2>
         <p class="small muted">From the same sample policy wording as the full comparison.</p>
       </div>
-      <a class="btn btn-primary" href="{{ simple.full_url }}">Open full comparison</a>
+      {% if simple.full_url %}<a class="btn btn-primary" href="{{ simple.full_url }}">Open full comparison</a>{% endif %}
     </div>
     <div class="table-scroll">
     <table class="cmp-table simple-table">

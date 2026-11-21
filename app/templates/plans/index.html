@@ -1,6 +1,26 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container-wide">
+  {% if not prudential %}
+  <h1 class="page-title">All plans</h1>
+  <p class="page-sub">Fictional sample plans with invented wording and prices. Nothing here is advice to buy.</p>
+  <div class="plan-grid plan-grid-wide">
+    {% for card in demo_cards %}
+    <article class="card plan-card">
+      <div class="chips"><span class="chip chip-info">{{ card.policy.type }}</span><span class="chip chip-muted">Demo data</span></div>
+      <h2 class="plan-name">{{ card.policy.name }}</h2>
+      <p class="muted small">{{ card.policy.description }}</p>
+      <p class="price">{{ card.policy.monthly_premium_cents | money }}<span class="muted small"> /mo</span></p>
+      <div class="plan-actions">
+        <a class="btn btn-primary" href="{{ url_for('plans.detail', plan_id=card.policy.id) }}">View plan</a>
+        <a class="btn btn-secondary" href="{{ card.compare_url }}" aria-label="Compare {{ card.policy.name }} with another plan">Compare</a>
+      </div>
+    </article>
+    {% else %}
+    <p class="empty">No plans are loaded. Load the sample plans with <code>flask seed-demo</code>.</p>
+    {% endfor %}
+  </div>
+  {% else %}
   <h1 class="page-title">All plans</h1>
   <p class="page-sub">Prudential Singapore plans from the public catalogue. A listing is not an offer and does not mean you are eligible. This is not advice to buy.</p>
 
@@ -44,8 +64,8 @@
 
   {% if demo_cards %}
   <section class="demo-plans" aria-labelledby="demo-plans-title">
-    <h2 class="section-title" id="demo-plans-title">Sample plans with AI summary and Compare</h2>
-    <p class="small muted">Fictional demo plans with invented wording and prices. The AI summary, translations, Read Aloud and side-by-side Compare work on these while the real Prudential plans are being connected.</p>
+    <h2 class="section-title" id="demo-plans-title">Sample plans with AI summary</h2>
+    <p class="small muted">Fictional demo plans with invented wording and prices. The AI summary, translations and Read Aloud work on these. Compare now works on the real PRUShield plans.</p>
     <div class="plan-grid plan-grid-wide">
       {% for card in demo_cards %}
       <article class="card plan-card">
@@ -55,12 +75,12 @@
         <p class="price">{{ card.policy.monthly_premium_cents | money }}<span class="muted small"> /mo</span></p>
         <div class="plan-actions">
           <a class="btn btn-primary" href="{{ url_for('plans.detail', plan_id=card.policy.id) }}">View plan</a>
-          <a class="btn btn-secondary" href="{{ card.compare_url }}" aria-label="Compare {{ card.policy.name }} with another plan">Compare</a>
         </div>
       </article>
       {% endfor %}
     </div>
   </section>
+  {% endif %}
   {% endif %}
 </div>
 {% endblock %}

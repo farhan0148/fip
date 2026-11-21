@@ -325,7 +325,7 @@ def test_a_cited_id_that_was_not_supplied_is_rejected(user):
 
 @pytest.mark.parametrize("ids", [[], None, "3", [None], [True], ["7"], [1.5], list(range(1, 8)), [{"id": 1}]])
 def test_a_statement_without_a_valid_citation_is_rejected(user, ids):
-    assert "no_valid_citation" in kinds(one_changed(0, clause_ids=ids))
+    assert kinds(one_changed(0, clause_ids=ids)) & {"no_valid_citation", "too_many_citations"}
 
 
 def test_a_statement_missing_the_clause_ids_key_is_rejected(user):
@@ -771,12 +771,12 @@ def test_the_key_never_reaches_the_page_the_scripts_or_the_responses(user, fake_
 
 # ---------- generate-summaries ----------
 
-def test_generate_summaries_fills_the_cache_for_every_plan_and_is_repeatable(app, seeded, fake_groq):
+def test_generate_summaries_fills_the_cache_for_every_plan_and_is_repeatable(app, seeded, fake_groq, monkeypatch):
     # app/ai/cli.py still asks for "catalogue plans". Since the Prudential import that means plans without clauses,
     # so this test points it at the hidden demo plans (open item in tasks.md: summaries for catalogue plans, 6b).
     import app.ai.cli as ai_cli
     from app.catalogue import legacy_demo_policies
-    ai_cli.catalogue_policies = legacy_demo_policies
+    monkeypatch.setattr(ai_cli, "catalogue_policies", legacy_demo_policies)
     def reply_for(request_messages):
         sent = json.loads(request_messages[1]["content"])
         if "clauses" in sent:

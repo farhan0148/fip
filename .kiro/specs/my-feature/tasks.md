@@ -133,6 +133,30 @@ Open items from this checkpoint:
 - The A/B Sources panel shows table fragments (the contract has no clause headings for them).
 - Uses PyMuPDF (AGPL-3.0 licence): confirm it is acceptable before any deployment.
 
+## Checkpoint 8 (built): AI summaries and comparison for the real PRUShield plans (6b)
+
+- **Scope:** PRUShield Premier, Plus (the catalogue calls it "PRUShield Plus") and Standard Plan, the three open plans with ingested wording. Closed A and B also have wording but are never summarised or compared. Every other plan says "Contract wording not verified" and never reaches the model.
+- **Retrieval** (`app/retrieval.py`, no AI): 13 fixed topics (covered, ward, limits, deductible, co-insurance, pre/post hospitalisation, cancer, exclusions, waiting periods, claims, renewal, termination, riders) scored by weighted keywords (a keyword in the clause heading counts double). Only paragraphs whose scope includes the plan's slug. Round-robin across topics, capped at 40, document order, same result every time. Premier and Plus get the same paragraphs because they share Part One.
+- **Summary** (`app/ai/plan_summary.py`): `{"statements":[{"text","paragraph_ids"}]}`, 4 to 8 statements, 1 to 4 supplied paragraph ids each, every figure must be in a cited paragraph, no advice wording, length caps. Any failure uses the deterministic "Standard summary" (clause heading plus first sentence of each topic's best paragraph). The model sees the plan name and paragraphs only (each cut to 400 characters), no client data and no premium. Cached per plan, language and paragraphs hash. Markers [n] open `/citations/<paragraph id>?plan=<slug>` in the PDF viewer. Translations keep the old rule (digits and cited ids unchanged, else English with a note).
+- **`flask generate-summaries [--plan slug] [--language ..] [--force]`** skips plans with no paragraphs (counted in the last line), retries when the provider is busy, and reports a failing plan without stopping.
+- **`flask generate-comparison [--plan slug] [--force]`** (offline, cached): eight fixed rows (ward class, annual claim limit, deductible, co-insurance, pre and post hospitalisation, cancer drug and treatment, key exclusions, renewal terms) plus a fixed "Premium varies" row. The model proposes `{state, finding, paragraph_id}` per row. A proposal is kept only if the paragraph was supplied (so it is in the plan's scope), figures appear in it, there is no advice wording, and "not_included" / "optional_rider" are backed by wording in that paragraph. Everything else becomes Unconfirmed, "Not stated in the available wording".
+- **Migration `10cdcfd50f0b`** (additive): `comparison_cells.paragraph_id` (nullable FK) and `paragraphs_hash`; the "not included needs a citation" CHECK now accepts a clause or a paragraph. Demo cells, flags and scenarios are untouched.
+- **/compare** lists the open plans that have contract wording. A plan with no findings yet shows a "Generate findings for <plan>" button (`POST /compare/generate`): one provider call, no client data, rate-limited per user, no retry loop inside the request, and the page says plainly when the service is busy or not set up. `flask generate-comparison` is still there for bulk runs. Summaries already generate on the first plan-page view. Cells link to the PDF viewer and "Show original wording" shows the paragraph text. The flag-for-FC flow works for Unconfirmed cells. The hidden demo plans are no longer in Compare.
+- **Plan page** `/plans/<slug>` has the summary card with language tabs for the three plans.
+
+Provider limits found in the live check (Groq free tier, `openai/gpt-oss-20b`): 8,000 tokens per minute and 200,000 tokens per day. A summary request is about 3,500 tokens, so the CLI waits and retries when the provider says "busy". The model's hidden reasoning could use the whole output budget on large inputs (HTTP 400 `json_validate_failed`), so the summary call now asks for low reasoning effort on gpt-oss models.
+
+Open items:
+
+- Reading the dashboard "Top recommended plans", the simulator and the "Send to my FC" flagged-items screen still use or show the fictional demo plans. A flagged real cell shows its finding but no source reference in the FC's view (that code is outside this checkpoint).
+- The annual claim limit row is Unconfirmed for all three plans: the wording points to the Benefits Schedule, whose figures are in tables the paragraph extractor splits into fragments. Table-aware extraction is needed before figures can be compared.
+- No Read Aloud on catalogue plan pages. No budget or compatibility sections on catalogue plans (they have no premium).
+- Premier and Plus findings are identical because the contract wording is shared. Differences are in the Benefits Schedule.
+
+## Decision: the real Prudential plans are hidden for now
+
+Everything from checkpoints 7 and 8 is built and tested but switched off. `SHOW_PRUDENTIAL_PLANS` defaults to off, so Plans, Compare and the plan summary use the fictional demo plans again (cards with Compare, AI summary, translations, Read Aloud). With it off, `/plans/<slug>` is a 404, `/compare/generate` is refused, and the catalogue helpers return nothing. Set `SHOW_PRUDENTIAL_PLANS=1` in `.env` to bring the real plans back. Nothing was deleted, and the catalogue, paragraphs and cached summaries stay in the database. To be looked at again later: the Compare findings quality, the Benefits Schedule tables, and the provider's daily token limit.
+
 ## Implementation tasks (suggested order)
 
 - [ ] 1. Set up project, design tokens and shared components (button, card, chip, cell state, nav)

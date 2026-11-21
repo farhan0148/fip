@@ -3,11 +3,14 @@
   <td class="cmp-cell" id="cell-{{ c.policy.id }}-{{ c.row_key }}">
     <span class="state state-{{ c.state }}">{{ c.state_label }}</span>
     <p class="finding">{{ c.finding }}</p>
-    {% if c.clause %}
+    {% if c.paragraph %}
+      <a class="clause-link" href="{{ url_for('citations.view', paragraph_id=c.paragraph.id, plan=c.policy.slug) }}">Sample contract · p.{{ c.paragraph.page }}{% if c.paragraph.clause_number %}, cl.{{ c.paragraph.clause_number }}{% endif %}</a>
+      <blockquote class="original">“{{ c.paragraph.text }}”</blockquote>
+    {% elif c.clause %}
       <a class="clause-link" href="{{ url_for('compare.citation', clause_id=c.clause.id, cell=c.cell.id, a=a.id, b=b.id) }}">Policy contract · p.{{ c.clause.page }}, cl.{{ c.clause.clause }}, line {{ c.clause.line }}</a>
       <blockquote class="original">“{{ c.clause.text }}”</blockquote>
     {% else %}
-      <span class="no-source">No source clause found</span>
+      <span class="no-source">{{ "No source paragraph" if c.policy.slug else "No source clause found" }}</span>
     {% endif %}
     {% if c.can_flag %}
       <form method="post" action="{{ url_for('compare.flag') }}" class="flag-form">
@@ -30,10 +33,11 @@
 {% block content %}
 <div class="container-wide compare-page">
   <h1 class="page-title">Compare policies</h1>
-  <p class="page-sub">Plain-language findings, each linked to the exact policy wording. All plans here are fictional demo data.</p>
+  <p class="page-sub">Plain-language findings, each linked to the exact policy wording. {% if real %}Findings come from the sample contract wording and are checked against it before they are shown.{% else %}All plans here are fictional demo data.{% endif %}</p>
 
   {% if not ready %}
-    <p class="empty">Two sample plans are needed to compare. Load the demo data with <code>flask seed-demo</code>.</p>
+    {% if real %}<p class="empty">At least two plans with contract wording are needed to compare. Run <code>flask import-catalogue</code>, <code>flask ingest-contracts</code> and <code>flask generate-comparison</code>.</p>{% else %}<p class="empty">Two sample plans are needed to compare. Load the demo data with <code>flask seed-demo</code>.</p>{% endif %}
+    <a class="btn btn-secondary" href="{{ url_for('sharing.new', category='flagged_items') }}">Send flagged items to my FC</a>
   {% else %}
 
   <form method="get" action="{{ url_for('compare.index') }}" class="picker" id="picker-form">
@@ -52,6 +56,17 @@
     <button type="submit" class="btn btn-primary">Update comparison</button>
   </form>
   {% if notice %}<p class="form-error" role="alert">{{ notice }}</p>{% endif %}
+  {% if generate_message %}<p class="notice" role="status">{{ generate_message }}</p>{% endif %}
+  {% for p in missing %}
+  <form method="post" action="{{ url_for('compare.generate') }}" class="generate-form">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <input type="hidden" name="policy_id" value="{{ p.id }}">
+    <input type="hidden" name="other" value="{{ (b.id if p.id == a.id else a.id) }}">
+    <p class="small muted">No findings have been generated for {{ p.name }} yet.</p>
+    <button type="submit" class="btn btn-secondary">Generate findings for {{ p.name }}</button>
+  </form>
+  {% endfor %}
+  {% if same_wording %}<p class="small muted">These two plans are in the same part of the sample contract, so their wording findings can match. Benefit amounts are in each plan's Benefits Schedule.</p>{% endif %}
 
   <div class="compare-wrap">
     <div class="compare-toolbar">
@@ -70,11 +85,19 @@
         <tr>
           <th scope="col">Policy</th>
           {% for p in (a, b) %}
-          <th scope="col">{{ p.name }}<span class="th-sub">{{ p.type }} · {{ p.monthly_premium_cents | money }}/mo</span></th>
+          <th scope="col">{{ p.name }}<span class="th-sub">{{ p.type }} · {% if real %}Premium varies{% else %}{{ p.monthly_premium_cents | money }}/mo{% endif %}</span></th>
           {% endfor %}
         </tr>
       </thead>
       <tbody>
+        {% if real %}<tr>
+          <th scope="row">Premium</th>
+          {% for p in (a, b) %}
+          <td class="cmp-cell" id="cell-{{ p.id }}-premium">
+            <p class="finding">Premium varies. See {% if premiums[p.id].url %}<a href="{{ premiums[p.id].url }}" target="_blank" rel="noopener noreferrer">Prudential's official rate tables</a>{% else %}Prudential's official rate tables{% endif %}</p>
+          </td>
+          {% endfor %}
+        </tr>{% endif %}
         {% if shared %}
         <tr class="band"><th colspan="3" scope="colgroup">Shared rows · comparable across both plans</th></tr>
         {% for row in shared %}
