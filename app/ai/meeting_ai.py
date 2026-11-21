@@ -9,6 +9,7 @@ import json
 import logging
 import re
 import threading
+from datetime import datetime, timedelta, timezone
 
 from ..extensions import db
 from ..models import Meeting, MeetingNote, MeetingRecording
@@ -21,6 +22,9 @@ log = logging.getLogger("app.ai")
 MAX_TRANSCRIPT_CHARS = 12000
 MAX_ITEMS = 8
 MAX_ITEM_CHARS = 300
+# Raw audio for a segment that failed to transcribe is kept only this long, so the FC can Retry. After that
+# expire_failed_audio() removes the bytes. Transcribed audio is deleted immediately (see process()).
+FAILED_AUDIO_TTL = timedelta(hours=24)
 SECTIONS = ("discussion", "next_steps", "open_questions")
 SECTION_KEYS = {"discussion": "discussion_points", "next_steps": "next_steps", "open_questions": "open_questions"}
 UNCLEAR = "[unclear] "
@@ -99,6 +103,38 @@ def _set(note, status=None, progress=None, error=None):
     db.session.commit()
 
 
+def _mark_failed_audio_expiry(meeting_id):
+    """Give every still-un-transcribed segment of this meeting an expiry (keep audio for Retry until then)."""
+    deadline = datetime.now(timezone.utc) + FAILED_AUDIO_TTL
+    rows = MeetingRecording.query.filter_by(meeting_id=meeting_id).filter(
+        MeetingRecording.transcript.is_(None), MeetingRecording.audio.isnot(None)
+    ).all()
+    for rec in rows:
+        if rec.expires_at is None:                       # do not keep pushing the deadline back on repeated retries
+            rec.expires_at = deadline
+    db.session.commit()
+    return len(rows)
+
+
+def expire_failed_audio(now=None):
+    """Remove the raw bytes of un-transcribed segments whose expiry has passed. Returns the number cleared.
+
+    The transcript stays NULL (there is none) and audio_deleted_at records the removal, so a later process run
+    reports the recording as expired rather than silently losing it."""
+    now = now or datetime.now(timezone.utc)
+    rows = MeetingRecording.query.filter(
+        MeetingRecording.transcript.is_(None),
+        MeetingRecording.audio.isnot(None),
+        MeetingRecording.expires_at.isnot(None),
+        MeetingRecording.expires_at <= now,
+    ).all()
+    for rec in rows:
+        rec.audio = None
+        rec.audio_deleted_at = now
+    db.session.commit()
+    return len(rows)
+
+
 def process(meeting_id):
     """Transcribe the saved segments (once each), then write the draft (once). Updates the note as it goes."""
     meeting = db.session.get(Meeting, meeting_id)
@@ -111,14 +147,22 @@ def process(meeting_id):
         _set(note, "failed", "The AI service is not set up on this server.", "not_configured")
         return
 
-    pending = [r for r in recordings if r.transcript is None]
+    pending = [r for r in recordings if r.transcript is None and r.audio is not None]
+    expired = [r for r in recordings if r.transcript is None and r.audio is None]
+    if expired and not pending:
+        _set(note, "failed", "Some recordings expired before they could be transcribed. Write the notes by hand.", "expired")
+        return
     for index, rec in enumerate(pending, start=1):
         _set(note, "processing", f"Transcribing audio {index} of {len(pending)}")
         try:
             rec.transcript = transcribe.transcribe(rec.audio, f"{rec.role}-{rec.id}.webm", rec.mime)
+            rec.audio = None                             # delete the raw audio as soon as it is transcribed
+            rec.audio_deleted_at = datetime.now(timezone.utc)
+            rec.expires_at = None
             db.session.commit()
         except client.AIUnavailable as exc:
             db.session.rollback()
+            _mark_failed_audio_expiry(meeting_id)        # keep the un-transcribed audio only until it expires
             _set(note, "failed", "Transcription did not finish. Write the notes by hand or try again.", exc.reason)
             return
 

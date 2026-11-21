@@ -1,0 +1,97 @@
+{% extends "fc/layout.html" %}
+{% from "fc/_gap_macros.html" import decision_form with context %}
+{% block fc_content %}
+<a class="back-link" href="{{ url_for('fc.client', client_id=client_id) }}">&larr; {{ label }}</a>
+<h1 class="page-title">Gap analysis</h1>
+<p class="trust-banner" role="note">Built only from what {{ label }} has shared with you. Read only, except your own confirm/dismiss decisions and notes. Estimates, to be confirmed with the client.</p>
+
+{% if saved %}<p class="notice" role="status" id="gap-saved">Decision saved.</p>{% endif %}
+
+{# ---------- cover need vs existing cover ---------- #}
+<section class="card" aria-labelledby="cover-title" id="cover-section">
+  <h2 class="card-title" id="cover-title">Death-cover need and existing cover</h2>
+  {% set c = analysis.cover %}
+  {% if not c.assessed %}
+    <p class="empty" id="cover-not-assessed">{{ c.message }}</p>
+  {% else %}
+    <div class="gap-figures">
+      <div class="gap-fig"><span class="gap-fig-label">Estimated need</span><span class="gap-fig-value" id="gap-need">{{ c.need | money_whole }}</span></div>
+      <div class="gap-fig"><span class="gap-fig-label">Existing cover</span><span class="gap-fig-value" id="gap-cover">{{ c.cover | money_whole }}</span></div>
+      <div class="gap-fig gap-fig-result">
+        {% if c.shortfall > 0 %}
+          <span class="gap-fig-label">Shortfall</span><span class="gap-fig-value gap-shortfall" id="gap-result">{{ c.shortfall | money_whole }}</span>
+        {% elif c.surplus > 0 %}
+          <span class="gap-fig-label">Surplus</span><span class="gap-fig-value gap-surplus" id="gap-result">{{ c.surplus | money_whole }}</span>
+        {% else %}
+          <span class="gap-fig-label">Shortfall or surplus</span><span class="gap-fig-value" id="gap-result">S$0 (need and cover match)</span>
+        {% endif %}
+      </div>
+    </div>
+    <details class="gap-source">
+      <summary>Source and assumptions</summary>
+      <p class="small muted">From the client's last saved simulator scenario ({{ c.saved_at.strftime('%d %b %Y, %H:%M') }}). Death cover only. What-if life events and added plans are kept separate and are not in these figures.</p>
+      <table class="log-table">
+        <tbody>
+        {% for label_, value in c.assumptions %}
+          <tr><th scope="row">{{ label_ }}</th><td>{{ value }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </details>
+
+    {% set f = analysis.cover_finding %}
+    <div class="gap-finding-status">
+      {% if f.stale %}
+        <p class="chip chip-warning" id="cover-stale">Source changed since you confirmed. Review again before reusing it.</p>
+      {% endif %}
+      <p class="small">Your decision:
+        <strong>{% if f.status == 'confirmed' %}Confirmed{% elif f.status == 'dismissed' %}Dismissed{% else %}Not decided yet{% endif %}</strong>
+        {% if f.status == 'confirmed' and not f.stale %}<span class="chip chip-info">Will prefill the ROA</span>{% endif %}
+        {% if f.note %}<br><span class="muted">Note: {{ f.note }}</span>{% endif %}
+      </p>
+      {{ decision_form(client_id, f.finding_key, f.status, f.note, f.stale) }}
+    </div>
+  {% endif %}
+</section>
+
+{# ---------- possible overlaps ---------- #}
+<section class="card" aria-labelledby="overlap-title" id="overlap-section">
+  <h2 class="card-title" id="overlap-title">Possible policy overlaps</h2>
+  <p class="small muted">Shown only where the client's flagged items cite sample wording. A possible overlap is not a reason to cancel either policy: check the exact clauses and confirm whether both policies cover the same event under comparable conditions.</p>
+  {% if 'flagged_items' not in analysis.visible %}
+    <p class="empty" id="overlap-not-assessed">Not assessed. The client has not shared any flagged items with you.</p>
+  {% elif not analysis.has_overlaps %}
+    <p class="empty" id="overlap-none">No possible overlaps found with supporting wording. Overlaps appear only when two or more flagged policies cite wording for the same kind of event.</p>
+  {% else %}
+    {% for o in analysis.overlaps %}
+    <div class="card gap-overlap" id="overlap-{{ o.row_key }}">
+      <h3 class="card-title">{{ o.row_label }} &mdash; cover for {{ o.event }}</h3>
+      {% if o.stale %}<p class="chip chip-warning">Source changed since you confirmed. Review again before reusing it.</p>{% endif %}
+      <p class="small">
+        {{ o.policies | length }} policies the client flagged cite wording about this event:
+        {{ o.policies | map(attribute='plan') | join(' and ') }}.
+      </p>
+      <table class="log-table">
+        <thead><tr><th scope="col">Plan</th><th scope="col">State</th><th scope="col">Sample wording</th><th scope="col">Source</th></tr></thead>
+        <tbody>
+        {% for p in o.policies %}
+          <tr>
+            <td>{{ p.plan }}</td>
+            <td>{{ p.state }}</td>
+            <td>{{ p.finding }}</td>
+            <td><a href="{{ url_for('compare.citation', clause_id=p.clause_id, plan=p.policy_id) }}">{{ p.clause_ref }}</a></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <p class="small">Your decision:
+        <strong>{% if o.status == 'confirmed' %}Confirmed overlap{% elif o.status == 'dismissed' %}Dismissed{% else %}Not decided yet{% endif %}</strong>
+        {% if o.status == 'confirmed' and not o.stale %}<span class="chip chip-info">Will prefill the ROA</span>{% endif %}
+        {% if o.note %}<br><span class="muted">Note: {{ o.note }}</span>{% endif %}
+      </p>
+      {{ decision_form(client_id, o.finding_key, o.status, o.note, o.stale) }}
+    </div>
+    {% endfor %}
+  {% endif %}
+</section>
+{% endblock %}

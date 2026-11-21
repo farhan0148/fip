@@ -1,0 +1,15 @@
+{% macro decision_form(client_id, finding_key, status, note, stale) %}
+<form method="post" action="{{ url_for('fc.gap_decide', client_id=client_id) }}" class="gap-decide">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <input type="hidden" name="finding_key" value="{{ finding_key }}">
+  <label class="field">
+    <span class="field-label">Note (optional)</span>
+    <textarea name="note" rows="2" maxlength="600" placeholder="Why you confirmed or dismissed this, for the record.">{{ note }}</textarea>
+  </label>
+  <div class="plan-actions">
+    <button type="submit" name="status" value="confirmed" class="btn btn-primary btn-small">{% if status == 'confirmed' and not stale %}Re-confirm{% else %}Confirm{% endif %}</button>
+    <button type="submit" name="status" value="dismissed" class="btn btn-secondary btn-small">Dismiss</button>
+    {% if status != 'open' %}<button type="submit" name="status" value="open" class="btn btn-secondary btn-small">Reset</button>{% endif %}
+  </div>
+</form>
+{% endmacro %}

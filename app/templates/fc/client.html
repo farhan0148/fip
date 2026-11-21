@@ -4,6 +4,7 @@
 <a class="back-link" href="{{ url_for('fc.index') }}">← All clients</a>
 <h1 class="page-title">{{ label }}</h1>
 <p class="trust-banner" role="note">Shared by the client. Read only. You see only the items below, and access ends the moment the client stops sharing.</p>
+<p class="plan-actions"><a class="btn btn-primary btn-small" href="{{ url_for('fc.gap', client_id=client_id) }}" id="open-gap">Gap analysis</a></p>
 
 {% for category, item, data in sections %}
 <section class="card fc-section" aria-labelledby="sec-{{ category }}">

@@ -179,6 +179,38 @@ Simulated or not built: video, payment, the AI pre-meeting summary and meeting s
 
 Not verified live: real Groq speech-to-text and notes quality, speaker audio over a real network (STUN/TURN), browser voices for Chinese, Malay and Tamil. Not built: live transcript, sending the ROA to the client, Week 14 sign-off.
 
+## Week 7 readiness pass (this pass): FC Gap Analysis, meeting consent and audio retention
+
+Demo plans and fictional accounts only. The real Prudential catalogue stays off (`SHOW_PRUDENTIAL_PLANS` default off). Live Groq and cross-network video are not exercised here (manual checks), and every automated check runs with the provider mocked or refused, so the readiness pass makes zero live provider calls.
+
+### Implemented and verified locally (automated tests pass, focused walkthrough passes)
+
+- **FC Gap Analysis** (`app/gap_analysis.py`, `app/fc_portal.py`, `app/templates/fc/gap.html`, `_gap_macros.html`). Reached from the FC client page ("Gap analysis" button) at `/fc/clients/<id>/gap`.
+  - Shows estimated death-cover need, existing cover and the shortfall or surplus side by side, reusing the simulator calculator result from the client's latest SAVED baseline scenario. What-if life events and added plans are kept out of the baseline figures and stay in the simulator.
+  - "Not assessed" when the required data is missing (simulator not shared, or no scenario saved). An explicitly entered zero existing cover is treated as zero (full shortfall); the simulator already requires every field to be filled (0 where nothing applies), so a value is never silently assumed.
+  - Possible overlaps are shown only where the client's flagged items cite sample wording, grouped by the event the row describes (death/TPD, critical illness, hospital), and only when two or more policies cite wording for the same event. Each links to the exact clause citation page. The page states plainly that a possible overlap is not a reason to cancel either policy and that the FC must confirm whether both cover the same event under comparable conditions.
+  - The FC can confirm or dismiss each finding, add a note and save (`gap_findings` table, one decision per FC, client and finding). The source and assumptions stay visible.
+  - Only confirmed, not-stale findings prefill the ROA (new "Gap analysis" section in `app/roa.py`, built via `gap_analysis.confirmed_for_roa`). Dismissed, open or stale findings do not.
+  - A confirmed finding is flagged "source changed, review again" and stops being reused the moment the underlying data changes (a `source_hash` snapshot is compared on every view).
+  - Consent and role checks are the existing ones: every read goes through `sharing.visible_categories`. Revoking any grant returns the page to 404 on the next request; revoking just the simulator grant shows "Not assessed"; clients and the wrong FC get 404. Covered by `tests/test_gap_analysis.py`.
+
+- **Meeting consent wording** (`app/templates/meetings/_room.html`): before recording starts, both participants are told that, if they agree, the audio is sent to Groq (a third-party AI service) to be transcribed and used to create private draft notes for the FC, and that the raw audio is deleted once transcribed. Recording still needs both to agree, shows the recording indicator, and stops on withdrawal or when the meeting ends (unchanged Week 8 behaviour, re-verified).
+
+- **Audio retention** (`app/ai/meeting_ai.py`, `app/models.py` migration `c4a1f09b7e22`):
+  - Raw audio is deleted as soon as a segment is transcribed (`audio` set NULL, `audio_deleted_at` recorded); the transcript is kept so a failed summary can be retried without re-sending audio.
+  - If transcription fails, the un-transcribed audio is kept for a documented TTL (`FAILED_AUDIO_TTL`, 24 hours) so the FC can Retry, then removed by `expire_failed_audio` / `flask expire-audio`. The expiry is verified to remove the stored audio.
+  - Manual note entry stays available throughout. Covered by `tests/test_gap_analysis.py`.
+
+- **Connected demo walkthrough** (`scripts/walkthrough.py`, mocked Groq, `_test` DB): client saves S$280,000 need and S$150,000 cover, verifies the S$130,000 shortfall and shares it; FC confirms the finding and sees it in the ROA with its source; a dismissed finding does not prefill; the customer sees nothing in Saved Notes before the FC sends; sent notes appear for the correct customer only; the ROA is generated from the reviewed notes and the confirmed gap, edited, and the edit survives a reload. All 16 checks pass.
+
+### Still unverified (left as manual checks)
+
+- **Live Groq**: speech-to-text, AI draft-note quality, and the Ask AI answer/citation quality against the real API. All automated checks mock or refuse the provider. Put the key and model in `.env` and exercise the buttons by hand.
+- **Cross-network video**: two browsers on separate networks seeing and hearing each other over real STUN/TURN. The signalling and consent logic are tested; the media path is not.
+- **Browser read-aloud voices** for 中文, Bahasa Melayu and தமிழ் (depends on the browser's installed voices).
+- The gap analysis has no life-event or critical-illness/disability gap modes (death cover only), matching the simulator's current scope.
+
+
 ## Implementation tasks (suggested order)
 
 - [ ] 1. Set up project, design tokens and shared components (button, card, chip, cell state, nav)
@@ -222,7 +254,8 @@ Not verified live: real Groq speech-to-text and notes quality, speaker audio ove
   - The trust banner and Clear Session (C16) are not on the Figma onboarding screens and are not built yet.
 - [ ] 12. FC portal: client list, profile, gap, incoming client
   - Done: FC accounts and login, client list limited to granted clients, read-only client view limited to granted categories, view log. See Checkpoint 5.
-  - Remaining: incoming client (Accept / Decline and the AI pre-meeting summary), notes, gap analysis, and the other FC tabs.
+  - Done (Week 7 readiness pass): **gap analysis** (needs vs existing cover, shortfall/surplus, possible overlaps from cited flagged items, FC confirm/dismiss with notes, confirmed findings prefill the ROA). See the Week 7 readiness pass section.
+  - Remaining: incoming client (Accept / Decline and the AI pre-meeting summary) beyond the Week 7 demo prototype, and the other FC tabs.
 - [ ] 13. Video meeting with AI summary
 - [ ] 14. ROA draft, sign-off, locked version with audit log
 - [ ] 15. Accessibility and multilingual pass

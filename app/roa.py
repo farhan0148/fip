@@ -12,7 +12,7 @@
 
 from flask import Blueprint, abort, g, redirect, render_template, request, url_for
 
-from . import comparison, score as death_score, sharing
+from . import comparison, gap_analysis, score as death_score, sharing
 from .extensions import db
 from .meetings import TOPIC_LABELS, access
 from .models import ComparisonCell, Meeting, MeetingNote, Policy, PolicyClause, RoaDraft, Scenario
@@ -95,6 +95,8 @@ def build_sections(meeting, fc, draft):
     sections.append({"key": "notes", "title": "Meeting notes", "body": notes_body,
                      "sources": [_src("notes", "Your private meeting notes", url_for("meeting_notes.notes", meeting_id=meeting.id))]})
 
+    sections.append(_gap_section(meeting, fc, client))
+
     approved = bool(draft is not None and draft.recommendation_approved and (draft.recommendation or "").strip())
     if approved:
         title = "FC's recorded reasoning and recommendation" if meeting.topic == "plan_comparison" else "FC's recorded recommendation"
@@ -164,6 +166,34 @@ def _estimates_section(meeting, visible):
         lines.append("Plans added in the what-if: " + ", ".join(data["plans"]) + ".")
     return {"key": "estimates", "title": "Estimates and assumptions", "body": "\n".join(lines),
             "sources": [_src("simulator", "Client's saved simulator scenario (shared with you)", url_for("fc.client", client_id=client_id))]}
+
+
+def _gap_section(meeting, fc, client):
+    """Only CONFIRMED, not-stale gap-analysis findings reach the ROA. Dismissed, open or stale ones are left out."""
+    confirmed = gap_analysis.confirmed_for_roa(fc, client.id)
+    cover, overlaps = confirmed["cover"], confirmed["overlaps"]
+    source = _src("gap", "Gap analysis (confirmed findings)", url_for("fc.gap", client_id=client.id))
+    if cover is None and not overlaps:
+        return {"key": "gap", "title": "Gap analysis", "sources": [source],
+                "body": f"{TO_CONFIRM}: no gap-analysis findings have been confirmed yet. Confirm them in the gap analysis to include them here."}
+    lines = []
+    if cover is not None:
+        if cover["shortfall"] > 0:
+            result = f"a shortfall of {money(cover['shortfall'])}"
+        elif cover["surplus"] > 0:
+            result = f"a surplus of {money(cover['surplus'])}"
+        else:
+            result = "need and existing cover match"
+        lines.append(f"Confirmed death-cover position: estimated need {money(cover['need'])}, existing cover "
+                     f"{money(cover['cover'])}, {result}. Death cover only, to be confirmed with the client.")
+    else:
+        lines.append(f"{TO_CONFIRM}: the death-cover need and existing cover have not been confirmed in the gap analysis.")
+    if overlaps:
+        lines.append("Confirmed possible overlaps (check the cited wording before any change; not a reason to cancel):")
+        for o in overlaps:
+            plans = " and ".join(p["plan"] for p in o["policies"])
+            lines.append(f"- {o['row_label']}: {plans} both cite wording for {o['event']}." + (f" Note: {o['note']}" if o["note"] else ""))
+    return {"key": "gap", "title": "Gap analysis", "body": "\n".join(lines), "sources": [source]}
 
 
 def merge(existing, generated, removed):

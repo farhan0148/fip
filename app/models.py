@@ -514,17 +514,25 @@ class MeetingSignal(db.Model):
 
 
 class MeetingRecording(db.Model):
-    """One consented audio segment captured in one participant's browser. Never shown to the customer."""
+    """One consented audio segment captured in one participant's browser. Never shown to the customer.
+
+    The raw `audio` bytes are deleted as soon as the segment is transcribed (the transcript is kept so a later
+    summary can be retried without re-sending audio). If transcription fails, the audio is kept only until
+    `expires_at` so a Retry is possible, then it is removed by `expire_failed_audio`. A NULL `audio` means the
+    bytes are gone: either transcribed successfully or expired.
+    """
 
     __tablename__ = "meeting_recordings"
 
     id = db.Column(db.Integer, primary_key=True)
     meeting_id = db.Column(db.Integer, db.ForeignKey("meetings.id", ondelete="CASCADE"), nullable=False, index=True)
     role = db.Column(db.String(6), nullable=False)         # client or fc
-    audio = db.Column(db.LargeBinary, nullable=False)
+    audio = db.Column(db.LargeBinary)                      # NULL once transcribed or expired (see class docstring)
     mime = db.Column(db.String(60), nullable=False)
     started_ms = db.Column(db.BigInteger, nullable=False, default=0)   # when the segment began (browser clock)
     transcript = db.Column(db.JSON)                        # saved once transcribed, so it is never transcribed twice
+    audio_deleted_at = db.Column(db.DateTime(timezone=True))          # when the raw bytes were removed
+    expires_at = db.Column(db.DateTime(timezone=True))                # when un-transcribed audio becomes eligible for deletion
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
 
 
@@ -547,6 +555,39 @@ class MeetingNote(db.Model):
     updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)
 
     meeting = db.relationship("Meeting")
+
+
+class GapFinding(db.Model):
+    """One FC decision on a gap-analysis finding for one client.
+
+    Findings are generated deterministically from data the client has shared (the saved simulator scenario for the
+    cover shortfall/surplus, flagged comparison items that cite sample wording for possible overlaps). The FC confirms
+    or dismisses each one, may add a note, and saves. `source_hash` is a snapshot of the data the finding was built
+    from; if the live data changes after a confirmation, the finding is flagged for review and must not prefill the
+    ROA until the FC confirms it again. Only confirmed, not-stale findings reach the ROA.
+    """
+
+    __tablename__ = "gap_findings"
+
+    id = db.Column(db.Integer, primary_key=True)
+    fc_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    client_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    # Stable key for one finding (e.g. "cover" or "overlap:<row_key>"). One decision per (fc, client, key).
+    finding_key = db.Column(db.String(60), nullable=False)
+    kind = db.Column(db.String(20), nullable=False)                      # cover | overlap
+    status = db.Column(db.String(10), nullable=False, default="open", server_default="open")  # open | confirmed | dismissed
+    note = db.Column(db.String(600))
+    # Snapshot of the source this decision was made against, so a later change can be detected.
+    source_hash = db.Column(db.String(64))
+    decided_at = db.Column(db.DateTime(timezone=True))
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("fc_id", "client_id", "finding_key", name="uq_gap_finding"),
+        CheckConstraint("status IN ('open', 'confirmed', 'dismissed')", name="ck_gap_finding_status"),
+        CheckConstraint("kind IN ('cover', 'overlap')", name="ck_gap_finding_kind"),
+    )
 
 
 class RoaDraft(db.Model):

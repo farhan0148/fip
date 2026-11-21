@@ -163,6 +163,14 @@ def register_commands(app):
         for fc in DEMO_FCS:
             click.echo(f"Demo FC login: {fc['email']} / {DEMO_FC_PASSWORD}  (referral code {fc['referral_code']})")
 
+    @app.cli.command("expire-audio")
+    def expire_audio_command():
+        """Delete raw audio of meeting recordings that failed transcription and have passed their expiry."""
+        from .ai import meeting_ai
+
+        cleared = meeting_ai.expire_failed_audio()
+        click.echo(f"Expired raw audio for {cleared} recording(s).")
+
     @app.cli.command("create-fc")
     @click.option("--email", required=True, help="Login email for the new FC.")
     @click.option("--name", required=True, help="Full name shown to clients.")

@@ -13,7 +13,6 @@
       <li><a href="{{ url_for('fc_demo.meeting') }}"{% if request.endpoint == 'fc_demo.meeting' %} class="is-active" aria-current="page"{% endif %}>Demo meeting</a></li>
       <li><a href="{{ url_for('fc_demo.roa') }}"{% if request.endpoint == 'fc_demo.roa' %} class="is-active" aria-current="page"{% endif %}>Demo ROA</a></li>
       {% endif %}
-      <li><span class="is-unavailable" aria-disabled="true">Gap analysis <span class="pill">Soon</span></span></li>
     </ul>
   </aside>
   <section class="fc-main">
