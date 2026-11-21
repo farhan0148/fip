@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-narrow buy-page">
+  <h1 class="page-title" id="done-title">Demo purchase confirmed</h1>
+  <section class="card">
+    <p>{{ policy.name }} is confirmed in this demo (order #{{ purchase.id }}). No payment details were collected and no money moved. Nothing was sent to an insurer.</p>
+    <p class="small muted">Confirmed {{ purchase.created_at.strftime("%d %b %Y, %H:%M") }}. You can reset this in Settings, under Clear my data.</p>
+  </section>
+  <div class="plan-actions">
+    <a class="btn btn-primary" href="{{ url_for('dashboard.index') }}">Back to dashboard</a>
+    <a class="btn btn-secondary" href="{{ url_for('plans.index') }}">See more plans</a>
+  </div>
+</div>
+{% endblock %}

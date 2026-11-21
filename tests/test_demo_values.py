@@ -8,7 +8,6 @@ def numbers(page):
     """The demo score, radar points and bar percentages as rendered."""
     section = page[page.index('class="demo-section"'): page.index('class="card priorities-card"')]
     return {
-        "score": re.search(r'class="ring-number">(\d+)<', section).group(1),
         "radar": re.search(r'<polygon points="([^"]+)" class="radar-shape"', section).group(1),
         "bars": re.findall(r'class="bar-value">(\d+)%<', section),
     }
@@ -30,8 +29,7 @@ def test_section_is_labelled_as_illustrative_demo_data(browser):
     page = browser.get("/dashboard").get_data(as_text=True)
     assert "Illustrative demo values" in page
     assert "do not depend on any answers" in page
-    assert "Coverage score (demo)" in page and "Coverage breakdown (demo)" in page
-    assert numbers(page)["score"] == "62"
+    assert "Coverage breakdown (demo)" in page and "Coverage score (demo)" not in page   # the score is now real
     assert numbers(page)["bars"] == ["72", "65", "58", "35", "48", "20"]
 
 

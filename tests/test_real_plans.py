@@ -75,6 +75,8 @@ def fake_groq(monkeypatch):
 @pytest.fixture()
 def wording(app, seeded):
     app.config["SHOW_PRUDENTIAL_PLANS"] = True   # the real plans are hidden by default
+    app.config["AI_GENERATE_ON_VIEW"] = True     # these tests check generation on a view
+    app.config["AI_FAST_FAIL"] = False
     for command in ("import-catalogue", "ingest-contracts"):
         result = app.test_cli_runner().invoke(args=[command])
         assert result.exit_code == 0, result.output

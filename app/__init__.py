@@ -31,6 +31,10 @@ def create_app(test_config=None):
         PERMANENT_SESSION_LIFETIME=timedelta(days=7),
         # The real Prudential plans are hidden for now. Set SHOW_PRUDENTIAL_PLANS=1 to show them (Plans, Compare).
         SHOW_PRUDENTIAL_PLANS=os.environ.get("SHOW_PRUDENTIAL_PLANS") == "1",
+        # Week 7: the provider is called only from an explicit button. Page views, language tabs and navigation never
+        # call it, a request has a short timeout and nothing is retried automatically.
+        AI_GENERATE_ON_VIEW=os.environ.get("AI_GENERATE_ON_VIEW") == "1",
+        AI_FAST_FAIL=os.environ.get("AI_FAST_FAIL") != "0",
         MAX_CONTENT_LENGTH=64 * 1024,
     )
     if test_config:
@@ -44,7 +48,7 @@ def create_app(test_config=None):
     db.init_app(app)
     migrate.init_app(app, db)
 
-    from . import ai, auth, citation_viewer, compare, dashboard, fc_portal, onboarding, plans, sharing_routes, simulator_routes
+    from . import ai, ask_routes, auth, buy_routes, citation_viewer, compare, dashboard, fc_demo, fc_portal, onboarding, plans, settings_routes, sharing_routes, simulator_routes
     from .cli import register_commands
     from .security import add_security_headers, csrf_token, load_current_user
 
@@ -54,6 +58,10 @@ def create_app(test_config=None):
     app.register_blueprint(compare.bp)
     app.register_blueprint(citation_viewer.bp)
     app.register_blueprint(plans.bp)
+    app.register_blueprint(ask_routes.bp)
+    app.register_blueprint(buy_routes.bp)
+    app.register_blueprint(settings_routes.bp)
+    app.register_blueprint(fc_demo.bp)
     app.register_blueprint(simulator_routes.bp)
     register_commands(app)
     ai.register(app)
@@ -74,12 +82,19 @@ def create_app(test_config=None):
         ("Plans", "plans.index"),
         ("Compare", "compare.index"),
         ("Simulator", "simulator.index"),
-        ("Settings", "dashboard.settings"),
+        ("Settings", "settings.index"),
     )
 
     @app.context_processor
     def inject_globals():
-        return {"csrf_token": csrf_token, "current_user": g.get("user"), "nav_items": nav_items}
+        from .settings_routes import body_classes
+        return {"csrf_token": csrf_token, "current_user": g.get("user"), "nav_items": nav_items,
+                "pref_classes": body_classes(g.get("user"))}
+
+    @app.template_filter("money_whole")
+    def money_whole(dollars):
+        dollars = int(dollars)
+        return ("\u2212" if dollars < 0 else "") + f"S${abs(dollars):,}"
 
     @app.template_filter("money")
     def money(cents):

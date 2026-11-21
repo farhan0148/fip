@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-narrow buy-page">
+  <h1 class="page-title">How would you like to proceed with {{ policy.name }}?</h1>
+  <p class="page-sub">You can talk to a Financial Consultant (FC) first, or buy now. This is a demo: no real purchase is made.</p>
+  {% if request.args.get("need") == "quiz" %}<p class="notice" role="alert">Pass the quick check (3 of 4) before checkout.</p>{% endif %}
+  <div class="choice-grid">
+    <section class="card choice-card" aria-labelledby="consult-title">
+      <h2 class="card-title" id="consult-title">Consult my FC</h2>
+      <p class="small muted">Share your profile, coverage map and this plan. Book a video meeting with an AI summary.</p>
+      <a class="btn btn-secondary" id="consult-fc" href="{{ url_for('sharing.new', category='profile_answers') }}">Send to my FC</a>
+    </section>
+    <section class="card choice-card" aria-labelledby="buy-title">
+      <h2 class="card-title" id="buy-title">Buy now</h2>
+      <p class="small muted">Take a short understanding quiz first so you know what you are buying, then check out.</p>
+      {% if ready %}
+      <form method="post" action="{{ url_for('buy.start', plan_id=policy.id) }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-primary" id="buy-now">Continue to quiz</button>
+      </form>
+      {% else %}
+      <p class="small muted">The quiz is not available for this plan yet.</p>
+      {% endif %}
+    </section>
+  </div>
+  <p><a class="back-link" href="{{ url_for('plans.detail', plan_id=policy.id) }}">&larr; Back to {{ policy.name }}</a></p>
+</div>
+{% endblock %}

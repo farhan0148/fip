@@ -28,7 +28,8 @@
       <div class="plan-actions">
         <a class="btn btn-secondary" href="{{ compare_url }}">{{ compare_label }}</a>
         <a class="btn btn-secondary" href="{{ url_for('simulator.index') }}">See impact on my gap</a>
-        <button type="button" class="btn btn-primary is-unavailable" disabled aria-disabled="true">Get this plan <span class="pill">Soon</span></button>
+        <a class="btn btn-secondary" href="{{ url_for('ask.index', plan=policy.id, lang=language if language != 'en' else None) }}">Ask AI</a>
+        <a class="btn btn-primary" href="{{ url_for('buy.proceed', plan_id=policy.id) }}" id="get-plan">Get this plan</a>
       </div>
     </div>
   </section>
@@ -39,7 +40,7 @@
         <h2 class="card-title" id="summary-title">Plan summary</h2>
         <nav class="lang-tabs" aria-label="Summary language">
           {% for code, name in languages %}
-            <a href="{{ url_for('plans.detail', plan_id=policy.id, lang=code) if code != 'en' else url_for('plans.detail', plan_id=policy.id) }}" lang="{{ code }}"
+            <a href="{{ url_for('plans.detail', plan_id=policy.id, lang=code) }}" lang="{{ code }}"
                class="lang-tab{% if code == language %} is-active{% endif %}"{% if code == language %} aria-current="true"{% endif %}>{{ name }}</a>
           {% endfor %}
         </nav>
@@ -51,6 +52,15 @@
         <p class="small muted">{{ reasons[summary.reason] }}</p>
       {% endif %}
 
+      {% if message %}<p class="notice" role="status" id="summary-message">{{ message }}</p>{% endif %}
+      {% if not summary.generated %}
+      <form method="post" action="{{ url_for('ask.generate_summary', plan_id=policy.id) }}" class="generate-form">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="lang" value="{{ language }}">
+        <button type="submit" class="btn btn-secondary" id="generate-summary">Generate AI summary{% if language != 'en' %} in {{ languages | selectattr(0, 'equalto', language) | map(attribute=1) | first }}{% endif %}</button>
+        <span class="small muted">Uses the AI once. Opening this page never does.</span>
+      </form>
+      {% endif %}
       {% if summary.statements %}
       <div id="summary-text" lang="{{ summary.language }}" class="plan-summary-text">
         {% for s in summary.statements %}
@@ -59,7 +69,7 @@
         {% endfor %}
       </div>
       <div class="read-aloud">
-        <button type="button" class="btn btn-small btn-secondary" id="read-aloud" data-lang="{{ speech_lang }}" disabled>Read aloud</button>
+        <button type="button" class="btn btn-small {{ 'btn-primary' if read_aloud_default else 'btn-secondary' }}" id="read-aloud" data-lang="{{ speech_lang }}" disabled>Read aloud</button>
         <span class="small muted" id="read-aloud-status" role="status"></span>
       </div>
       <h3 class="data-sub">Sources</h3>

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-narrow settings-page">
+  <section class="card clear-card" role="alertdialog" aria-labelledby="clear-title" aria-describedby="clear-desc">
+    <h1 class="card-title" id="clear-title">Clear my data?</h1>
+    <p id="clear-desc">This resets the demo state below. It cannot be undone. In this demo your account, answers and saved scenario are kept.</p>
+    <h2 class="data-sub">Will be reset</h2>
+    <ul class="plain-list">{% for item in reset %}<li>&#9632; {{ item }}</li>{% endfor %}</ul>
+    <h2 class="data-sub">Kept</h2>
+    <ul class="plain-list">{% for item in kept %}<li class="muted">&#10003; {{ item }}</li>{% endfor %}</ul>
+    <div class="plan-actions">
+      <a class="btn btn-secondary" href="{{ url_for('settings.index') }}">Cancel</a>
+      <form method="post" action="{{ url_for('settings.clear') }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-primary" id="confirm-clear">Yes, reset demo data</button>
+      </form>
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "fc/layout.html" %}
+{% block fc_content %}
+<div class="fc-head">
+  <div>
+    <h1 class="page-title">New client request: {{ client.name }}</h1>
+    <p class="page-sub"><span class="chip chip-warning">{{ client.tag }}</span> Via referral code {{ client.code }}. Not a real person or record.</p>
+  </div>
+  {% if state.request_status == "pending" %}
+  <div class="plan-actions">
+    <form method="post" action="{{ url_for('fc_demo.decide', action='decline') }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button type="submit" class="btn btn-secondary" id="decline">Decline</button></form>
+    <form method="post" action="{{ url_for('fc_demo.decide', action='accept') }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button type="submit" class="btn btn-primary" id="accept">Accept client</button></form>
+  </div>
+  {% endif %}
+</div>
+
+{% if state.request_status == "accepted" %}<p class="notice is-good" role="status" id="request-state">Accepted. {{ client.name }} is now in your clients (demo).</p>{% endif %}
+{% if state.request_status == "declined" %}<p class="notice" role="status" id="request-state">Declined. The request is closed. Use Reset demo to see it again.</p>{% endif %}
+
+<section class="card" aria-labelledby="pre-title">
+  <h2 class="card-title" id="pre-title">Pre-meeting summary <span class="chip chip-success">Shared by client</span> <span class="chip chip-muted">Sample, from a local template</span></h2>
+  <p>{{ client.summary_line }} Main concern: {{ client.concerns }}</p>
+  <div class="fc-triple">
+    <div class="card inner"><h3 class="data-sub">Biggest gaps (illustrative)</h3><ul class="plain-list">{% for n, v in gaps %}<li>{{ n }} {{ v }}%</li>{% endfor %}</ul></div>
+    <div class="card inner"><h3 class="data-sub">Plans compared</h3><ul class="plain-list">{% for p in client.plans_compared %}<li>{{ p }}</li>{% endfor %}</ul></div>
+    <div class="card inner"><h3 class="data-sub">Shared by client</h3><ul class="plain-list">{% for p in client.shared %}<li>{{ p }}</li>{% endfor %}</ul></div>
+  </div>
+  <p class="small muted">Client questions to cover: {{ client.questions | join(" ") }}</p>
+  {% if state.request_status == "accepted" %}
+  <div class="plan-actions">
+    <a class="btn btn-primary" href="{{ url_for('fc_demo.meeting') }}" id="schedule-call">Schedule intro call</a>
+    <a class="btn btn-secondary" href="{{ url_for('fc_demo.profile') }}">Open client profile</a>
+    <a class="btn btn-secondary" href="{{ url_for('fc_demo.roa') }}">Start ROA draft</a>
+  </div>
+  {% else %}
+  <p class="small muted">Accept the client to open the profile, schedule the intro call and start an ROA draft.</p>
+  {% endif %}
+</section>
+<form method="post" action="{{ url_for('fc_demo.reset') }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button type="submit" class="linklike" id="reset-demo">Reset demo</button></form>
+{% endblock %}

@@ -3,10 +3,18 @@
 <div class="fc-shell">
   <aside class="fc-sidebar" aria-label="FC portal">
     <ul>
-      <li><a href="{{ url_for('fc.index') }}" class="is-active" aria-current="page">Clients</a></li>
+      <li><a href="{{ url_for('fc.index') }}"{% if request.endpoint in ('fc.index', 'fc.client') %} class="is-active" aria-current="page"{% endif %}>Clients</a></li>
+      {% set ok = fc_demo and fc_demo.request_status == 'accepted' %}
+      <li><a href="{{ url_for('fc_demo.request_page') }}"{% if request.endpoint == 'fc_demo.request_page' %} class="is-active" aria-current="page"{% endif %}>New request (demo)</a></li>
+      {% if ok %}
+      <li><a href="{{ url_for('fc_demo.profile') }}"{% if request.endpoint == 'fc_demo.profile' %} class="is-active" aria-current="page"{% endif %}>Client profile (demo)</a></li>
+      <li><a href="{{ url_for('fc_demo.meeting') }}"{% if request.endpoint == 'fc_demo.meeting' %} class="is-active" aria-current="page"{% endif %}>Meetings</a></li>
+      <li><a href="{{ url_for('fc_demo.roa') }}"{% if request.endpoint == 'fc_demo.roa' %} class="is-active" aria-current="page"{% endif %}>ROA drafts</a></li>
+      {% else %}
+      <li><span class="is-unavailable" aria-disabled="true" title="Accept the demo client first">Meetings</span></li>
+      <li><span class="is-unavailable" aria-disabled="true" title="Accept the demo client first">ROA drafts</span></li>
+      {% endif %}
       <li><span class="is-unavailable" aria-disabled="true">Gap analysis <span class="pill">Soon</span></span></li>
-      <li><span class="is-unavailable" aria-disabled="true">Meetings <span class="pill">Soon</span></span></li>
-      <li><span class="is-unavailable" aria-disabled="true">ROA drafts <span class="pill">Soon</span></span></li>
     </ul>
   </aside>
   <section class="fc-main">

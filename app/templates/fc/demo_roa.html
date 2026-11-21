@@ -1,0 +1,43 @@
+{% extends "fc/layout.html" %}
+{% block fc_content %}
+<div class="fc-head">
+  <div>
+    <h1 class="page-title">Record of Advice: {{ client.name }}</h1>
+    <p class="page-sub">Drafted from the demo profile, available findings and saved meeting notes, using a local template. <span class="chip chip-warning">{{ client.tag }}</span></p>
+  </div>
+  <p><span class="chip {{ 'chip-success' if state.roa_status != 'draft' else 'chip-muted' }}" id="roa-status">{{ {"draft": "Draft", "reviewed": "Reviewed", "locked": "Locked"}[state.roa_status] }}</span>
+     <span class="pill">Export PDF: Soon</span></p>
+</div>
+{% if saved %}<p class="notice is-good" role="status">Saved.</p>{% endif %}
+{% if missing %}
+<section class="card" aria-labelledby="missing-title" id="missing-items">
+  <h2 class="card-title" id="missing-title">Missing items</h2>
+  <ul class="plain-list">{% for m in missing %}<li>&#9888; {{ m }}</li>{% endfor %}</ul>
+</section>
+{% endif %}
+<form method="post" action="{{ url_for('fc_demo.roa_action', action='save') }}" class="card roa-form" id="roa-form">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  {% for s in sections %}
+  <div class="roa-section">
+    <label for="text_{{ s.key }}"><strong>{{ s.title }}</strong></label>
+    <textarea id="text_{{ s.key }}" name="text_{{ s.key }}" rows="3"{% if state.roa_status == "locked" %} readonly{% endif %}>{{ s.text }}</textarea>
+    <p class="small muted">Source: {{ s.source }}{% if s.edited %} (edited){% endif %}</p>
+  </div>
+  {% endfor %}
+  {% if state.roa_status != "locked" %}
+  <div class="plan-actions">
+    <button type="submit" class="btn btn-secondary" id="save-roa">Save edits</button>
+  </div>
+  {% else %}<p class="muted">This draft is locked and can no longer be edited.</p>{% endif %}
+</form>
+{% if state.roa_status != "locked" %}
+<div class="plan-actions">
+  {% if state.roa_status == "draft" %}
+  <form method="post" action="{{ url_for('fc_demo.roa_action', action='review') }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button type="submit" class="btn btn-primary" id="mark-reviewed">Mark as reviewed</button></form>
+  {% else %}
+  <form method="post" action="{{ url_for('fc_demo.roa_action', action='lock') }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button type="submit" class="btn btn-primary" id="lock-roa">Lock ROA</button></form>
+  {% endif %}
+</div>
+<p class="small muted">Locking is a demo step. Actual client sign-off and the audit log wait for Week 14.</p>
+{% endif %}
+{% endblock %}

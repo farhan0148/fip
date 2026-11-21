@@ -1,0 +1,48 @@
+{% extends "fc/layout.html" %}
+{% block fc_content %}
+<div class="fc-head">
+  <div>
+    <h1 class="page-title">Meeting with {{ client.name }}</h1>
+    <p class="page-sub" id="meeting-state">
+      {% if state.meeting_status == "idle" %}Not started. Simulated video call: no camera, microphone or network is used.
+      {% elif state.meeting_status == "joined" %}Video call &middot; live (simulated) &middot; AI notes on (sample text)
+      {% else %}Call ended (simulated).{% endif %}
+    </p>
+  </div>
+  {% if state.meeting_status == "joined" %}
+  <form method="post" action="{{ url_for('fc_demo.meeting_action', action='end') }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button type="submit" class="btn btn-primary" id="end-meeting">End meeting</button></form>
+  {% endif %}
+</div>
+<div class="fc-two">
+  <section class="card">
+    <div class="video-box" role="img" aria-label="Simulated video area">
+      <p>{% if state.meeting_status == "idle" %}Waiting to join{% elif state.meeting_status == "joined" %}Live (simulated){% else %}Call ended{% endif %}</p>
+    </div>
+    <div class="plan-actions">
+      {% if state.meeting_status == "idle" %}
+      <form method="post" action="{{ url_for('fc_demo.meeting_action', action='join') }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button type="submit" class="btn btn-primary" id="join-meeting">Join</button></form>
+      {% endif %}
+      <button type="button" class="btn btn-secondary is-unavailable" disabled>Mute</button>
+      <button type="button" class="btn btn-secondary is-unavailable" disabled>Camera</button>
+      <button type="button" class="btn btn-secondary is-unavailable" disabled>Share screen</button>
+      <span class="small muted">Simulated controls. Live video arrives in Week 14.</span>
+    </div>
+  </section>
+  <section class="card" aria-labelledby="sum-title">
+    <h2 class="card-title" id="sum-title">AI meeting summary <span class="chip chip-muted">Sample text</span> {% if state.meeting_status == "joined" %}<span class="chip chip-success">Live</span>{% endif %}</h2>
+    {% if state.meeting_status == "idle" %}
+    <p class="muted">The summary appears once you join the meeting.</p>
+    {% else %}
+    <h3 class="data-sub">Key points</h3>
+    <ul class="plain-list" id="meeting-points">{% for p in points %}<li>&bull; {{ p }}</li>{% endfor %}</ul>
+    <h3 class="data-sub">Action items</h3>
+    <ul class="plain-list">{% for a in actions %}<li>&bull; {{ a }}</li>{% endfor %}</ul>
+    {% if state.notes_added %}
+    <p class="notice is-good" role="status" id="notes-added">Added to client profile.</p>
+    {% else %}
+    <form method="post" action="{{ url_for('fc_demo.meeting_action', action='add-notes') }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button type="submit" class="btn btn-primary" id="add-notes">Add to client profile</button></form>
+    {% endif %}
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

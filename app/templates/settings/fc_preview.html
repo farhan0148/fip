@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-narrow settings-page">
+  <p class="small muted"><span class="chip chip-success">1 Review</span> <span class="chip chip-success">2 Choose new FC</span> <span class="chip chip-info">3 Share data</span></p>
+  <h1 class="page-title">Send your information to {{ new.name }}</h1>
+  <section class="card" aria-labelledby="new-fc-title">
+    <h2 class="card-title" id="new-fc-title">Your new FC</h2>
+    <p><strong id="new-fc-name">{{ new.name }}</strong>{% if new.speciality %}, {{ new.speciality }}{% endif %}</p>
+    {% if new.languages %}<p class="small muted">Languages: {{ new.languages | join(", ") }}</p>{% endif %}
+  </section>
+  <p class="notice is-good" role="status">Nothing is shared with {{ new.name }} until you confirm below.{% if old %} {{ old.name }} stops seeing your data when you confirm.{% endif %}</p>
+  {% if error %}<p class="form-error" role="alert">Tick at least one item, or choose Cancel to keep your current FC.</p>{% endif %}
+  <form method="post" action="{{ url_for('settings.fc_confirm') }}" class="card" id="confirm-fc-form">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <h2 class="card-title">What {{ new.name }} will see</h2>
+    <ul class="plain-list">
+      {% for category in categories %}
+      <li>
+        <label class="toggle"><input type="checkbox" name="categories" value="{{ category }}"{% if category in active %} checked{% endif %}> <strong>{{ info[category].title }}</strong></label>
+        <p class="small muted">{{ info[category].what }}{% if category in active %} (currently shared with {{ old.name if old else "your FC" }}){% endif %}</p>
+      </li>
+      {% endfor %}
+    </ul>
+    <div class="plan-actions">
+      <button type="submit" class="btn btn-primary" id="confirm-fc-change">Confirm change</button>
+    </div>
+  </form>
+  <form method="post" action="{{ url_for('settings.fc_cancel') }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn-secondary" id="cancel-fc-change">Cancel</button>
+  </form>
+</div>
+{% endblock %}

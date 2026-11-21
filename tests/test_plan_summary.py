@@ -65,6 +65,10 @@ def no_live_calls(monkeypatch, app):
     monkeypatch.setattr(ai_client, "Groq", refuse)
     for name in ("AI_DEBUG", "APP_ENV", "GROQ_API_KEY", "GROQ_MODEL"):
         monkeypatch.delenv(name, raising=False)
+    # These tests cover generation on a page view and the older retry settings. Week 7 mode (no call on a view,
+    # no retry) is tested in test_week7.py.
+    app.config["AI_GENERATE_ON_VIEW"] = True
+    app.config["AI_FAST_FAIL"] = False
     FakeGroq.reset()
     yield
     FakeGroq.reset()

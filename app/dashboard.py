@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 from flask import Blueprint, g, render_template
 
-from . import demo_fixture, plan_match, services
+from . import demo_fixture, plan_match, score as death_score, services
 from .catalogue import legacy_demo_policies
 from .extensions import db
 from .security import login_required, onboarding_complete_required
@@ -24,17 +24,8 @@ def index():
         summary=services.profile_summary(g.user),
         priorities=services.priorities_for(g.user),
         demo=demo_fixture.load(),
+        cover_score=death_score.baseline(g.user),
         top=top,
         page_title="Dashboard",
     )
 
-
-def _placeholder(title, needs_review):
-    def view():
-        return render_template("coming_soon.html", title=title, page_title=title)
-
-    view.__name__ = f"{title.lower()}_placeholder"
-    return onboarding_complete_required(view) if needs_review else login_required(view)
-
-
-bp.add_url_rule("/settings", "settings", _placeholder("Settings", False))

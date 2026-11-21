@@ -157,6 +157,18 @@ Open items:
 
 Everything from checkpoints 7 and 8 is built and tested but switched off. `SHOW_PRUDENTIAL_PLANS` defaults to off, so Plans, Compare and the plan summary use the fictional demo plans again (cards with Compare, AI summary, translations, Read Aloud). With it off, `/plans/<slug>` is a 404, `/compare/generate` is refused, and the catalogue helpers return nothing. Set `SHOW_PRUDENTIAL_PLANS=1` in `.env` to bring the real plans back. Nothing was deleted, and the catalogue, paragraphs and cached summaries stay in the database. To be looked at again later: the Compare findings quality, the Benefits Schedule tables, and the provider's daily token limit.
 
+## Week 7 prototype (built): clickable demo pass
+
+Demo plans only (the real Prudential plans stay hidden behind `SHOW_PRUDENTIAL_PLANS`).
+
+- **Death cover score:** dashboard shows existing death cover / estimated need x 100 (0 to 100) from the saved simulator scenario, a setup state before any save, and no percentage when need is zero. The simulator shows the live score and a what-if score (events and added plans) as you type. The six-area radar stays labelled illustrative.
+- **Ask AI and summaries (demo clauses):** `/ask` (plan, question, language, "Summarise this plan") and a "Generate AI summary" button on plan pages. The provider is called only by those buttons: one short request per cache miss, 10 s timeout, no automatic retry, cached by plan, clause version, question and language. Page loads and language tabs make no call (`AI_GENERATE_ON_VIEW` is off). Failures show a fallback with clause links and the original wording.
+- **Buy or consult:** Get this plan, Consult my FC (existing consent flow), Buy now: four scenario questions from the plan's cited findings, feedback with clause links, retries, 3 of 4 to pass, server-gated demo checkout with no payment details.
+- **Settings:** text size, high contrast, read-aloud default and summary language persist per account. Change FC (choose, preview, confirm). Clear my data resets demo state only.
+- **FC portal:** fictional incoming client (accept or decline, pre-meeting summary from a local template), simulated meeting (Join, End meeting, Add to client profile) and an editable sample ROA with missing items, Mark reviewed and Lock. Live video and actual sign-off wait for Week 14.
+
+Simulated or not built: video, payment, the AI pre-meeting summary and meeting summary (fixed sample text), PDF export of the ROA, "Download my data", sharing categories beyond profile, scenario and flagged items.
+
 ## Implementation tasks (suggested order)
 
 - [ ] 1. Set up project, design tokens and shared components (button, card, chip, cell state, nav)

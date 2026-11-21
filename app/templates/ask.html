@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-wide ask-page">
+  <h1 class="page-title">Ask AI about a plan</h1>
+  <p class="page-sub">Pick a sample plan and ask a question, or get a plain-language summary. Answers use only that plan's sample clauses (fictional wording) and cite them. Nothing about you is sent. This is not advice to buy.</p>
+
+  <form method="post" action="{{ url_for('ask.submit') }}" class="card ask-form" id="ask-form">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <div class="picker">
+      <div class="picker-field">
+        <label for="ask-plan">Plan</label>
+        <select id="ask-plan" name="plan">
+          {% for p in plans %}<option value="{{ p.id }}"{% if selected and p.id == selected.id %} selected{% endif %}>{{ p.name }} ({{ p.type }})</option>{% endfor %}
+        </select>
+      </div>
+      <div class="picker-field">
+        <label for="ask-lang">Language</label>
+        <select id="ask-lang" name="lang">
+          {% for code, name in languages %}<option value="{{ code }}"{% if code == language %} selected{% endif %}>{{ name }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+    <label for="ask-question">Your question</label>
+    <textarea id="ask-question" name="question" rows="3" maxlength="300" placeholder="For example: Does this plan pay out for critical illness?">{{ question or "" }}</textarea>
+    {% if error %}<p class="form-error" role="alert">{{ error }}</p>{% endif %}
+    <div class="plan-actions">
+      <button type="submit" name="action" value="ask" class="btn btn-primary">Ask</button>
+      <button type="submit" name="action" value="summary" class="btn btn-secondary">Summarise this plan</button>
+    </div>
+    <p class="small muted">The AI is called only when you press one of these buttons. Repeated questions use the saved answer.</p>
+  </form>
+
+  {% if result %}
+  <section class="card ask-result" id="ask-result" aria-labelledby="result-title" aria-live="polite">
+    {% if result.kind == "summary" %}
+      <h2 class="card-title" id="result-title">Summary of {{ selected.name }}</h2>
+      {% if result.fallback %}
+      <p class="notice" role="status">{{ reasons.get(result.reason, "The AI summary was not available.") }} The standard summary is shown, with its sources.</p>
+      {% endif %}
+      {% if result.note %}<p class="notice" role="status">{{ result.note }}.</p>{% endif %}
+      <p><span class="chip {{ 'chip-muted' if result.fallback else 'chip-info' }}" id="result-label">{{ "Standard summary" if result.fallback else "AI-generated summary, checked against the policy wording" }}</span></p>
+    {% else %}
+      <h2 class="card-title" id="result-title">Answer about {{ selected.name }}</h2>
+      {% if result.status == "fallback" %}
+      <p class="notice" role="status">{{ reasons.get(result.reason, "The AI answer was not available.") }} No answer was made up. These are the most relevant sample clauses.</p>
+      <p><span class="chip chip-muted" id="result-label">No AI answer</span></p>
+      {% elif result.status == "insufficient" %}
+      <p class="notice" role="status" id="insufficient">{{ result.insufficient }} The closest clauses are listed below.</p>
+      <p><span class="chip chip-muted" id="result-label">Source insufficient</span></p>
+      {% else %}
+      <p><span class="chip chip-info" id="result-label">AI answer, checked against the policy wording</span></p>
+      {% endif %}
+    {% endif %}
+
+    {% if result.view.statements %}
+    <div class="plan-summary-text" id="result-text" lang="{{ language }}">
+      {% for s in result.view.statements %}
+      <p class="stmt"><span class="stmt-text">{{ s.text }}</span>
+        {% for m in s.markers %}<sup class="cite"><a href="{{ m.url }}" aria-label="Open source {{ m.n }}">[{{ m.n }}]</a></sup>{% endfor %}</p>
+      {% endfor %}
+    </div>
+    <h3 class="data-sub">Sources (original wording)</h3>
+    <ol class="sources" id="result-sources">
+      {% for src in result.view.sources %}
+      <li id="src-{{ src.n }}"><a href="{{ src.url }}">[{{ src.n }}] {{ src.ref }}</a> <blockquote class="original-visible">&ldquo;{{ src.text }}&rdquo;</blockquote></li>
+      {% endfor %}
+    </ol>
+    {% endif %}
+
+    {% if result.relevant and not result.view.statements %}
+    <h3 class="data-sub">Relevant sample clauses</h3>
+    <ol class="sources" id="result-relevant">
+      {% for item in result.relevant %}
+      <li><a href="{{ item.url }}">p.{{ item.clause.page }}, cl.{{ item.clause.clause }}, line {{ item.clause.line }}</a> <blockquote class="original-visible">&ldquo;{{ item.clause.text }}&rdquo;</blockquote></li>
+      {% endfor %}
+    </ol>
+    {% endif %}
+    <p class="small muted">Fictional sample wording. Confirm details with your Financial Consultant (FC).</p>
+  </section>
+  {% endif %}
+
+  {% if history %}
+  <section class="card" aria-labelledby="history-title">
+    <h2 class="card-title" id="history-title">Your recent requests</h2>
+    <ul class="plain-list">
+      {% for h in history %}
+      <li class="small">{{ names.get(h.policy_id, "Plan") }}: {{ h.question if h.kind == "question" else "Summary" }} <span class="muted">({{ h.language|upper }}, {{ h.outcome }})</span></li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

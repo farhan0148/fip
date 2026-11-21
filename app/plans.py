@@ -5,7 +5,7 @@
 "Top recommended plans" still links to it.
 """
 
-from flask import Blueprint, abort, g, render_template, request, url_for
+from flask import Blueprint, abort, current_app, g, render_template, request, url_for
 
 from . import catalogue, comparison, plan_match, services
 from .ai import plan_summary
@@ -13,6 +13,11 @@ from .catalogue import legacy_demo_policies
 from .extensions import db
 from .models import ComparisonCell, Paragraph, PolicyClause
 from .security import onboarding_complete_required
+
+SUMMARY_MESSAGES = {
+    "ai": "AI summary generated and checked against the clauses.",
+    "fallback": "The AI summary could not be made right now, so the standard summary is shown with its sources.",
+}
 
 bp = Blueprint("plans", __name__, url_prefix="/plans")
 
@@ -155,7 +160,9 @@ def detail_slug(slug):
         language = "en"
     summary = None
     if contract["verified"] and not catalogue.is_closed(policy):  # closed plans are not summarised
-        summary = _contract_summary_view(plan_summary.summary_for(policy, language, g.user.id), policy)
+        raw = (plan_summary.summary_for(policy, language, g.user.id) if current_app.config.get("AI_GENERATE_ON_VIEW")
+               else plan_summary.peek_contract_summary(policy, language))
+        summary = _contract_summary_view(raw, policy)
     return render_template(
         "plans/plan.html",
         policy=policy,
@@ -257,10 +264,14 @@ def detail(plan_id):
     if policy is None:
         abort(404)
 
-    language = request.args.get("lang", "en")
+    from .settings_routes import prefs   # the saved summary language is the default; a language tab overrides it
+    language = request.args.get("lang") or prefs(g.user)["summary_language"]
     if language not in plan_summary.LANGUAGE_CODES:
         language = "en"
-    summary = _summary_view(plan_summary.summary_for(policy, language, g.user.id), policy)
+    # Week 7: a page view never calls the provider. The "Generate AI summary" button does (ask_routes).
+    raw = (plan_summary.summary_for(policy, language, g.user.id) if current_app.config.get("AI_GENERATE_ON_VIEW")
+           else plan_summary.peek_summary(policy, language))
+    summary = _summary_view(raw, policy)
 
     answers = services.answers_by_question(g.user)
     hospital = ComparisonCell.query.filter_by(policy_id=policy.id, row_key="hospital").first()
@@ -279,6 +290,8 @@ def detail(plan_id):
         fit_rows=plan_match.compatibility_rows(g.user, policy, hospital.state if hospital else None),
         simple=_simple_comparison(policies, policy),
         compare_url=_compare_url(policies, policy),
+        message=SUMMARY_MESSAGES.get(request.args.get("msg")),
+        read_aloud_default=prefs(g.user)["read_aloud"],
         compare_label="Compare PRUShield plans" if catalogue.prudential_enabled() else "Compare",
         page_title=policy.name,
     )

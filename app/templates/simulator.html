@@ -102,6 +102,14 @@
 
     <div class="sim-right">
       <p class="result-status" id="result-status" role="status"></p>
+      <section class="card score-live" id="score-live" data-state="setup" aria-labelledby="score-live-title" aria-live="polite">
+        <h2 class="card-title" id="score-live-title">Death cover score <span class="chip chip-muted">Death cover only</span></h2>
+        <div class="score-pair">
+          <div><p class="stat-label">Today (your saved dashboard score)</p><p class="stat-value" id="score-today">&mdash;</p><p class="stat-sub" id="score-today-note">Fill in every field to see your estimate.</p></div>
+          <div><p class="stat-label">What if</p><p class="stat-value" id="score-whatif">&mdash;</p><p class="stat-sub" id="score-whatif-note"></p></div>
+        </div>
+        <p class="small muted">Existing death cover &divide; estimated need. The dashboard shows the score from your last saved scenario.</p>
+      </section>
       <div class="stats" id="stats" aria-live="polite">
         <div class="stat stat-today"><p class="stat-label">Gap today</p><p class="stat-value" id="stat-today">—</p><p class="stat-sub" id="stat-today-sub"></p></div>
         <div class="stat stat-after"><p class="stat-label">After life events</p><p class="stat-value" id="stat-after">—</p><p class="stat-sub" id="stat-after-sub"></p></div>
@@ -158,5 +166,6 @@
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/simulator-core.js') }}"></script>
 <script src="{{ url_for('static', filename='js/simulator.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/score-live.js') }}" defer></script>
 <script src="{{ url_for('static', filename='js/simulator-explain.js') }}" defer></script>
 {% endblock %}

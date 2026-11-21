@@ -1,0 +1,16 @@
+{% extends "fc/layout.html" %}
+{% block fc_content %}
+<h1 class="page-title">{{ client.name }} <span class="chip chip-warning">{{ client.tag }}</span></h1>
+<p class="page-sub">{{ client.summary_line }}</p>
+<div class="fc-triple">
+  <section class="card"><h2 class="card-title">Client needs</h2><ul class="plain-list">{% for n in client.needs %}<li>&bull; {{ n }}</li>{% endfor %}</ul></section>
+  <section class="card"><h2 class="card-title">Coverage detail <span class="chip chip-muted">Illustrative</span></h2>
+    <ul class="plain-list">{% for a in axes %}<li class="small">{{ a.name }}: {{ a.value }}%</li>{% endfor %}</ul></section>
+  <section class="card" id="profile-notes"><h2 class="card-title">Meeting notes</h2>
+    {% if notes %}<ul class="plain-list">{% for n in notes %}<li>&bull; {{ n }}</li>{% endfor %}</ul>{% else %}<p class="muted">No notes added yet. Add them from the meeting screen.</p>{% endif %}</section>
+</div>
+<section class="card"><h2 class="card-title">Existing policies</h2>
+  <table class="log-table"><thead><tr><th scope="col">Policy</th><th scope="col">Type</th><th scope="col">Sum assured</th><th scope="col">Premium</th></tr></thead>
+  <tbody>{% for n, t, s, p in client.existing %}<tr><td>{{ n }}</td><td>{{ t }}</td><td>{{ s }}</td><td>{{ p }}</td></tr>{% endfor %}</tbody></table></section>
+<div class="plan-actions"><a class="btn btn-primary" href="{{ url_for('fc_demo.meeting') }}">Start video call (simulated)</a> <a class="btn btn-secondary" href="{{ url_for('fc_demo.roa') }}">ROA draft</a></div>
+{% endblock %}

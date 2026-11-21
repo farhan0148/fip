@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-narrow buy-page">
+  <h1 class="page-title">Quick check before you buy</h1>
+  <p class="page-sub" id="quiz-progress">Question {{ n }} of {{ total }} &middot; you need 3 of 4 to continue</p>
+  <section class="card quiz-card" aria-labelledby="q-title">
+    <h2 class="card-title" id="q-title">{{ question.text }}</h2>
+    {% if choice is none %}
+    <form method="post" action="{{ url_for('buy.answer', plan_id=policy.id) }}" class="quiz-form">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="q" value="{{ n }}">
+      <fieldset>
+        <legend class="sr-only">Choose one answer</legend>
+        {% for option in question.options %}
+        <label class="quiz-option"><input type="radio" name="choice" value="{{ loop.index0 }}" required> {{ option }}</label>
+        {% endfor %}
+      </fieldset>
+      <button type="submit" class="btn btn-primary">Check my answer</button>
+    </form>
+    {% else %}
+    <ul class="quiz-options">
+      {% for option in question.options %}
+      <li class="quiz-option{% if loop.index0 == choice %} is-chosen{% endif %}{% if loop.index0 == question.correct %} is-correct{% endif %}">{{ option }}{% if loop.index0 == choice %} <span class="small muted">(your answer)</span>{% endif %}</li>
+      {% endfor %}
+    </ul>
+    <p class="quiz-feedback {{ 'is-right' if correct else 'is-wrong' }}" role="status" id="quiz-feedback">
+      {% if correct %}Correct.{% else %}Not quite. The right answer is: {{ question.options[question.correct] }}.{% endif %}
+      {{ question.finding }}
+      <a href="{{ clause_url }}" id="quiz-source">See the sample clause</a>
+    </p>
+    {% endif %}
+  </section>
+  <div class="plan-actions">
+    {% if n > 1 %}<a class="btn btn-secondary" href="{{ url_for('buy.quiz', plan_id=policy.id, q=n - 1) }}">Back</a>{% else %}<a class="btn btn-secondary" href="{{ url_for('buy.proceed', plan_id=policy.id) }}">Back</a>{% endif %}
+    {% if choice is not none and n < total %}<a class="btn btn-primary" id="next-question" href="{{ url_for('buy.quiz', plan_id=policy.id, q=n + 1) }}">Next question</a>{% endif %}
+    {% if choice is not none and n == total %}<a class="btn btn-primary" id="see-result" href="{{ url_for('buy.result', plan_id=policy.id) }}">See my result</a>{% endif %}
+  </div>
+</div>
+{% endblock %}

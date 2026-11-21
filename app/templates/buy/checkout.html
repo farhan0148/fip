@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-narrow buy-page">
+  <h1 class="page-title">Checkout <span class="chip chip-warning">Demo</span></h1>
+  <div class="choice-grid">
+    <section class="card" aria-labelledby="pay-title">
+      <h2 class="card-title" id="pay-title">Payment details</h2>
+      <p>This is a demo checkout. No card or bank details are collected, nothing is stored, and no money moves.</p>
+      <form method="post" action="{{ url_for('buy.confirm', plan_id=policy.id) }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-primary" id="confirm-demo">Confirm demo purchase</button>
+      </form>
+    </section>
+    <section class="card" aria-labelledby="order-title">
+      <h2 class="card-title" id="order-title">Order summary</h2>
+      <dl class="facts">
+        <dt>Plan</dt><dd>{{ policy.name }}</dd>
+        <dt>Quiz passed</dt><dd>&#10003; {{ attempt.score }}/{{ total }}</dd>
+        <dt>Total / month</dt><dd>{{ policy.monthly_premium_cents | money }} (sample price)</dd>
+      </dl>
+    </section>
+  </div>
+</div>
+{% endblock %}

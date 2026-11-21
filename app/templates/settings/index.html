@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-narrow settings-page">
+  <h1 class="page-title">Settings</h1>
+  {% if saved %}<p class="notice is-good" role="status" id="settings-saved">Saved. Your preferences stay on this account.</p>{% endif %}
+  {% if cleared %}<p class="notice is-good" role="status" id="settings-cleared">Demo data reset. Your account, answers and saved scenario were kept.</p>{% endif %}
+  {% if fc_changed %}<p class="notice is-good" role="status" id="fc-changed">Your FC was changed.</p>{% endif %}
+
+  <form method="post" action="{{ url_for('settings.save') }}" class="card settings-card" aria-labelledby="access-title">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <h2 class="card-title" id="access-title">Accessibility and language</h2>
+    <div class="picker-field">
+      <label for="text_size">Text size</label>
+      <select id="text_size" name="text_size">
+        {% for key, label in text_sizes %}<option value="{{ key }}"{% if prefs.text_size == key %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <label class="toggle"><input type="checkbox" name="high_contrast" id="high_contrast"{% if prefs.high_contrast %} checked{% endif %}> High contrast</label>
+    <label class="toggle"><input type="checkbox" name="read_aloud" id="read_aloud"{% if prefs.read_aloud %} checked{% endif %}> Read aloud by default (shows the Read aloud button first on plan summaries)</label>
+    <div class="picker-field">
+      <label for="summary_language">Summary language</label>
+      <select id="summary_language" name="summary_language">
+        {% for code, name in languages %}<option value="{{ code }}"{% if prefs.summary_language == code %} selected{% endif %}>{{ name }}</option>{% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary" id="save-settings">Save preferences</button>
+  </form>
+
+  <section class="card settings-card" aria-labelledby="fc-title">
+    <h2 class="card-title" id="fc-title">My Financial Consultant (FC)</h2>
+    {% if fc %}<p>Current FC: <strong id="current-fc">{{ fc.name }}</strong>{% if fc.speciality %}, {{ fc.speciality }}{% endif %}</p>{% else %}<p class="muted">You have not chosen an FC yet.</p>{% endif %}
+    <a class="btn btn-secondary" id="change-fc" href="{{ url_for('settings.fc_choose') }}">{{ "Change FC" if fc else "Choose an FC" }}</a>
+  </section>
+
+  <section class="card settings-card" aria-labelledby="privacy-title">
+    <h2 class="card-title" id="privacy-title">Privacy and data</h2>
+    <ul class="plain-list">
+      <li><a href="{{ url_for('settings.clear_confirm') }}" id="clear-data">Clear my data</a></li>
+      <li><span class="muted">Download my data</span> <span class="pill">Soon</span></li>
+      <li><a href="{{ url_for('sharing.index') }}">Manage sharing with FC</a></li>
+    </ul>
+  </section>
+</div>
+{% endblock %}

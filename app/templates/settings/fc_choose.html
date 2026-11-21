@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-narrow settings-page">
+  <p class="small muted"><span class="chip chip-success">1 Review</span> <span class="chip chip-info">2 Choose new FC</span> <span class="chip chip-muted">3 Share data</span></p>
+  <h1 class="page-title">Who would you like to work with next?</h1>
+  {% if current %}<p class="page-sub">Your current FC is {{ current.name }}. Nothing changes until you confirm in step 3.</p>{% endif %}
+  {% if error %}<p class="form-error" role="alert" id="fc-error">{{ error }}</p>{% endif %}
+  <div class="choice-grid">
+    <form method="post" action="{{ url_for('settings.fc_pick') }}" class="card choice-card">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <h2 class="card-title">Match me randomly</h2>
+      <p class="small muted">We pick an available FC who speaks your language.</p>
+      <button type="submit" name="choice" value="random" class="btn btn-secondary" id="match-random">Match me</button>
+    </form>
+    <form method="post" action="{{ url_for('settings.fc_pick') }}" class="card choice-card">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <h2 class="card-title">I have a referral code</h2>
+      <label for="code" class="small muted">Enter the code your FC gave you</label>
+      <input id="code" name="code" class="plain-input" autocomplete="off" placeholder="FC-2048">
+      <button type="submit" name="choice" value="referral" class="btn btn-primary" id="use-code">Preview this FC</button>
+    </form>
+  </div>
+  <a class="btn btn-secondary" href="{{ url_for('settings.index') }}">Back</a>
+</div>
+{% endblock %}

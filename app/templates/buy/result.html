@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-narrow buy-page">
+  <h1 class="page-title">Your result: {{ attempt.score }} of {{ total }}</h1>
+  {% if attempt.passed %}
+  <p class="notice is-good" role="status" id="quiz-passed">You passed ({{ pass_mark }} of {{ total }} needed). You can continue to checkout.</p>
+  {% else %}
+  <p class="notice" role="status" id="quiz-failed">You need {{ pass_mark }} of {{ total }} to continue. Read the clauses below and try again. You can retry as many times as you like.</p>
+  {% endif %}
+  <section class="card" aria-label="Your answers">
+    <ol class="quiz-review">
+      {% for item in review %}
+      <li><strong>{{ item.q.row }}:</strong> {{ "Correct" if item.ok else "Not quite" }}. {{ item.q.finding }} <a href="{{ item.url }}">See the sample clause</a></li>
+      {% endfor %}
+    </ol>
+  </section>
+  <div class="plan-actions">
+    {% if attempt.passed %}
+    <a class="btn btn-primary" id="to-checkout" href="{{ url_for('buy.checkout', plan_id=policy.id) }}">Continue to checkout</a>
+    {% else %}
+    <form method="post" action="{{ url_for('buy.start', plan_id=policy.id) }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-primary" id="retry-quiz">Try again</button>
+    </form>
+    {% endif %}
+    <a class="btn btn-secondary" href="{{ url_for('plans.detail', plan_id=policy.id) }}">Back to plan</a>
+  </div>
+</div>
+{% endblock %}

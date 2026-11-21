@@ -7,7 +7,7 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
-<body class="{% block body_class %}{% endblock %}">
+<body class="{% block body_class %}{% endblock %}{{ pref_classes }}">
   <a class="skip-link" href="#main">Skip to content</a>
   {% block nav %}
   {% if current_user and current_user.role == 'fc' %}

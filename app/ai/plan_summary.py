@@ -111,7 +111,9 @@ def _complete(system_prompt, user_message, max_tokens):
     if not api_key or not model:
         raise client.AIUnavailable("not_configured")
     try:
-        provider = client.Groq(api_key=api_key, timeout=client.TIMEOUT_SECONDS * 2, max_retries=client.MAX_RETRIES)
+        fast = current_app.config.get("AI_FAST_FAIL", True)   # Week 7: short timeout, no automatic retry
+        provider = client.Groq(api_key=api_key, timeout=client.TIMEOUT_SECONDS * (1 if fast else 2),
+                               max_retries=0 if fast else client.MAX_RETRIES)
         extra = {"reasoning_effort": "low"} if "gpt-oss" in model.lower() else {}
         # gpt-oss models spend output tokens on hidden reasoning. With many paragraphs, "medium" reasoning can use
         # the whole budget and leave an empty reply (HTTP 400 json_validate_failed), so ask for less of it.
@@ -398,6 +400,51 @@ def translated_summary(policy, language, english, user_id=None, force=False):
     if reason in REMEMBERED:
         _save(policy.id, language, [], "standard", reason, digest)
     return None
+
+
+def peek_summary(policy, language):
+    """What the plan page shows WITHOUT calling the provider: cached AI text if there is any, else the standard summary.
+
+    "generated" says whether the text shown is the cached AI version for this language."""
+    clauses = PolicyClause.query.filter_by(policy_id=policy.id).order_by(PolicyClause.page, PolicyClause.line).all()
+    digest = plan_hash(policy, clauses)
+    row = PlanSummary.query.filter_by(policy_id=policy.id, language="en").first()
+    if row is not None and row.clauses_hash == digest and row.source == "ai":
+        english = _pack(row, digest)
+    else:
+        english = {"source": "standard", "label": STANDARD_LABEL, "statements": standard_statements(policy),
+                   "reason": "not_generated" if row is None or row.clauses_hash != digest else row.reason,
+                   "hash": digest}
+    return _peek_result(policy, language, english)
+
+
+def _peek_result(policy, language, english):
+    result = {"requested": language, "language": "en", "source": english["source"], "label": english["label"],
+              "statements": english["statements"], "reason": english["reason"], "note": None,
+              "generated": english["source"] == "ai"}
+    if language != "en" and language in LANGUAGE_NAMES:
+        row = PlanSummary.query.filter_by(policy_id=policy.id, language=language).first()
+        digest = translation_hash(english["hash"], english["statements"])
+        if english["source"] == "ai" and row is not None and row.source == "ai" and row.clauses_hash == digest:
+            result.update(language=language, source="ai", label=TRANSLATION_LABEL, statements=list(row.statements),
+                          generated=True)
+        else:
+            result.update(note="Translation not generated yet, showing English", generated=False)
+    return result
+
+
+def peek_contract_summary(policy, language):
+    """The same for a catalogue plan (contract paragraphs). Never calls the provider."""
+    retrieved = retrieval.retrieve(policy)
+    if not retrieved.paragraphs:
+        return {"requested": language, "language": "en", **_no_contract(), "note": None, "generated": False}
+    row = PlanSummary.query.filter_by(policy_id=policy.id, language="en").first()
+    if row is not None and row.clauses_hash == retrieved.digest and row.source == "ai":
+        english = _pack(row, retrieved.digest)
+    else:
+        english = {"source": "standard", "label": STANDARD_LABEL, "statements": contract_standard_statements(retrieved),
+                   "reason": "not_generated", "hash": retrieved.digest}
+    return _peek_result(policy, language, english)
 
 
 def summary_for(policy, language, user_id=None):

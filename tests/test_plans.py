@@ -1,4 +1,4 @@
-"""/plans, the dashboard top 3 and the plan detail page (without the AI parts). _test database only."""
+﻿"""/plans, the dashboard top 3 and the plan detail page (without the AI parts). _test database only."""
 
 import re
 
@@ -185,7 +185,7 @@ def test_top_three_links_and_the_demo_values_stay_intact(user):
     assert f'href="/plans/{plan(first_plan).id}"' in page and ">View plan<" in page
     assert re.search(r'href="/compare\?a=%d&amp;b=\d+"' % plan(first_plan).id, page)
     assert "Fictional demo data" in page and "Illustrative demo values" in page
-    assert re.findall(r'class="ring-number">(\d+)<', page) == ["62"]
+    assert re.findall(r'class="ring-number"[^>]*>(\d+)<', page) == []   # no saved scenario: the score card shows the setup state
     assert re.findall(r'class="bar-value">(\d+)%<', page) == ["72", "65", "58", "35", "48", "20"]
 
 

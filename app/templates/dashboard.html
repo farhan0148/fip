@@ -12,28 +12,37 @@
     </div>
     <div class="dash-actions">
       <a class="btn btn-secondary" href="{{ url_for('simulator.index') }}">Simulate a change</a>
-      {{ soon_button("Ask AI") }}
-      {{ soon_button("Find a plan", "primary") }}
+      <a class="btn btn-secondary" href="{{ url_for('ask.index') }}" id="ask-ai">Ask AI</a>
+      <a class="btn btn-primary" href="{{ url_for('plans.index') }}">Find a plan</a>
     </div>
   </div>
   <p class="note">Buttons marked “Soon” are not available in this build.</p>
 
   <section class="demo-section" aria-labelledby="demo-title">
     <div class="demo-head">
-      <span class="chip chip-warning" id="demo-title">{{ demo.title }}</span>
-      <p class="small muted">{{ demo.note }} Your real coverage calculation is not built yet.</p>
+      <span class="chip chip-warning" id="demo-title">Breakdown: {{ demo.title }}</span>
+      <p class="small muted">The score is your death cover estimate. The six-area breakdown beside it is illustrative: {{ demo.note }}</p>
     </div>
     <div class="dash-grid">
       <section class="card score-card" aria-labelledby="score-title">
-        <p class="eyebrow" id="score-title">Coverage score (demo)</p>
-        <svg class="score-svg" viewBox="0 0 120 120" role="img" aria-label="Demo coverage score {{ demo.score }} out of 100">
+        <p class="eyebrow" id="score-title">Death cover score <span class="chip chip-muted">Death cover only</span></p>
+        {% if cover_score.state == "score" %}
+        <svg class="score-svg" viewBox="0 0 120 120" role="img" aria-label="Estimated death cover score {{ cover_score.score }} out of 100">
           <circle cx="60" cy="60" r="50" class="ring-track" pathLength="100"/>
-          <circle cx="60" cy="60" r="50" class="ring-value" pathLength="100" stroke-dasharray="{{ demo.score }} 100" transform="rotate(-90 60 60)"/>
-          <text x="60" y="64" text-anchor="middle" class="ring-number">{{ demo.score }}</text>
+          <circle cx="60" cy="60" r="50" class="ring-value" pathLength="100" stroke-dasharray="{{ cover_score.score }} 100" transform="rotate(-90 60 60)"/>
+          <text x="60" y="64" text-anchor="middle" class="ring-number" id="cover-score">{{ cover_score.score }}</text>
           <text x="60" y="82" text-anchor="middle" class="ring-max">/ 100</text>
         </svg>
-        <span class="chip chip-warning">{{ demo.score_label }}</span>
-        <p class="muted small">Sample value, not based on your answers.</p>
+        <p class="muted small" id="cover-gap">{{ cover_score.cover | money_whole }} existing death cover of an estimated need of {{ cover_score.need | money_whole }}. {% if cover_score.gap > 0 %}Estimated gap {{ cover_score.gap | money_whole }}.{% else %}No estimated gap.{% endif %}</p>
+        <p class="muted small">From your saved simulator scenario ({{ cover_score.saved_at.strftime("%d %b %Y") }}). An estimate to confirm with your FC.</p>
+        <a class="btn btn-secondary btn-small" href="{{ url_for('simulator.index') }}">Update in the simulator</a>
+        {% elif cover_score.state == "no_need" %}
+        <p class="empty" id="cover-none">Your saved inputs give an estimated need of zero, so there is no percentage to show.</p>
+        <a class="btn btn-secondary btn-small" href="{{ url_for('simulator.index') }}">Open the simulator</a>
+        {% else %}
+        <p class="empty" id="cover-setup">Set up your estimate: enter your household figures in the simulator and save them. Your score appears here.</p>
+        <a class="btn btn-primary btn-small" href="{{ url_for('simulator.index') }}">Set up my estimate</a>
+        {% endif %}
       </section>
 
       <section class="card breakdown-card" aria-labelledby="breakdown-title">

@@ -1,6 +1,18 @@
 {% extends "fc/layout.html" %}
 {% block fc_content %}
 <h1 class="page-title">My clients</h1>
+{% if fc_demo %}
+<section class="card demo-request" aria-labelledby="demo-req-title" id="demo-request">
+  <h2 class="card-title" id="demo-req-title">{% if fc_demo.request_status == "pending" %}New client request{% else %}Demo client{% endif %} <span class="chip chip-warning">Fictional demo client</span></h2>
+  {% if fc_demo.request_status == "pending" %}
+  <p>Priya Nair has asked to work with you (referral code FC-2048). <a class="btn btn-primary btn-small" href="{{ url_for('fc_demo.request_page') }}" id="open-request">Review request</a></p>
+  {% elif fc_demo.request_status == "accepted" %}
+  <p>Priya Nair (fictional) is in your clients. <a href="{{ url_for('fc_demo.profile') }}">Open profile</a> &middot; <a href="{{ url_for('fc_demo.meeting') }}">Meeting</a> &middot; <a href="{{ url_for('fc_demo.roa') }}">ROA draft ({{ fc_demo.roa_status }})</a></p>
+  {% else %}
+  <p class="muted">You declined this demo request. <a href="{{ url_for('fc_demo.request_page') }}">View</a></p>
+  {% endif %}
+</section>
+{% endif %}
 <p class="page-sub">You only see clients who have chosen to share something with you, and only the items they chose. Read only.</p>
 
 {% if clients %}

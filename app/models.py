@@ -377,3 +377,94 @@ class PlanSummary(db.Model):
         UniqueConstraint("policy_id", "language", name="uq_summary_policy_language"),
         CheckConstraint("source IN ('ai', 'standard')", name="ck_summary_source"),
     )
+
+
+
+# ---------- Week 7 prototype state (all of it can be reset by "Clear my data" or the FC demo reset) ----------
+
+class UserSetting(db.Model):
+    """Accessibility and language preferences. One row per user, created on first save."""
+
+    __tablename__ = "user_settings"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True)
+    text_size = db.Column(db.String(10), nullable=False, default="normal", server_default="normal")
+    high_contrast = db.Column(db.Boolean, nullable=False, default=False, server_default=db.false())
+    read_aloud = db.Column(db.Boolean, nullable=False, default=False, server_default=db.false())
+    summary_language = db.Column(db.String(5), nullable=False, default="en", server_default="en")
+
+
+class AskAnswer(db.Model):
+    """Cached answer to one question about one demo plan. The same for every user (the model sees no client data)."""
+
+    __tablename__ = "ask_answers"
+
+    id = db.Column(db.Integer, primary_key=True)
+    policy_id = db.Column(db.Integer, db.ForeignKey("policies.id", ondelete="CASCADE"), nullable=False, index=True)
+    question_hash = db.Column(db.String(64), nullable=False)   # hash of the normalised question
+    language = db.Column(db.String(5), nullable=False)
+    clauses_hash = db.Column(db.String(64), nullable=False)    # the clause version the answer was checked against
+    answer = db.Column(db.JSON, nullable=False)                # {"sufficient": bool, "statements": [...]}
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("policy_id", "question_hash", "language", name="uq_ask_answer"),
+    )
+
+
+class AskHistory(db.Model):
+    """What one user asked (cleared by "Clear my data")."""
+
+    __tablename__ = "ask_history"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    policy_id = db.Column(db.Integer, db.ForeignKey("policies.id", ondelete="CASCADE"), nullable=False)
+    kind = db.Column(db.String(10), nullable=False)             # "question" or "summary"
+    question = db.Column(db.String(300))
+    language = db.Column(db.String(5), nullable=False)
+    outcome = db.Column(db.String(20), nullable=False)          # ai, cached, fallback
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class QuizAttempt(db.Model):
+    """One run through the four-question check before buying a demo plan."""
+
+    __tablename__ = "quiz_attempts"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    policy_id = db.Column(db.Integer, db.ForeignKey("policies.id", ondelete="CASCADE"), nullable=False)
+    answers = db.Column(db.JSON, nullable=False, default=dict)  # {"1": option index, ...}
+    finished = db.Column(db.Boolean, nullable=False, default=False, server_default=db.false())
+    score = db.Column(db.Integer)
+    passed = db.Column(db.Boolean, nullable=False, default=False, server_default=db.false())
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class DemoPurchase(db.Model):
+    """A confirmed DEMO checkout. No payment details exist anywhere and no money moves."""
+
+    __tablename__ = "demo_purchases"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    policy_id = db.Column(db.Integer, db.ForeignKey("policies.id", ondelete="CASCADE"), nullable=False)
+    quiz_attempt_id = db.Column(db.Integer, db.ForeignKey("quiz_attempts.id", ondelete="SET NULL"))
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class FCDemoState(db.Model):
+    """The simulated incoming-client / meeting / ROA state for one FC. The client in it is fictional."""
+
+    __tablename__ = "fc_demo_state"
+
+    id = db.Column(db.Integer, primary_key=True)
+    fc_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True)
+    request_status = db.Column(db.String(10), nullable=False, default="pending", server_default="pending")
+    meeting_status = db.Column(db.String(10), nullable=False, default="idle", server_default="idle")
+    notes_added = db.Column(db.Boolean, nullable=False, default=False, server_default=db.false())
+    roa_sections = db.Column(db.JSON)                           # edited text by section key; NULL = template as generated
+    roa_status = db.Column(db.String(10), nullable=False, default="draft", server_default="draft")
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)
